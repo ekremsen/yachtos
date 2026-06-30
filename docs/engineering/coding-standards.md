@@ -117,6 +117,34 @@ $count++;
 
 ---
 
+## Naming Philosophy
+
+Naming decisions must be made carefully at the beginning of the project.
+
+Inconsistent or unclear naming creates long-term friction and reduces developer confidence.
+
+YachtOS follows global best practices and prioritizes consistency over personal preference.
+
+Once naming standards are accepted, they should not be changed without a strong architectural reason.
+
+---
+
+## Naming Standards
+
+| Context | Standard | Example |
+|---------|----------|---------|
+| Module folders | plural or domain noun | users, yachts, tenants, crew, inventory |
+| Database tables | plural | users, yachts, tenants |
+| API endpoints | plural | /api/users, /api/yachts |
+| Models | singular PascalCase | User, Yacht, Tenant |
+| Services | singular PascalCase | UserService, YachtService |
+| Controllers | singular PascalCase | UserController |
+| Variables | singular camelCase | user, yacht |
+| Collections | plural camelCase | users, yachts |
+| Database columns | snake_case | created_at, tenant_id |
+
+---
+
 ## Final Principle
 
 Consistency is more valuable than personal preference.
