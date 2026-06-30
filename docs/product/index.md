@@ -176,6 +176,16 @@ Every feature must answer:
 
 ---
 
+## Ownership Model Principle
+
+The MVP is designed around yacht operations, not yacht ownership models.
+
+Private yachts and charter-operated yachts should both be supported at the operational level.
+
+Charter-specific commercial workflows may be added in later versions.
+
+---
+
 ## Non-Goals For MVP
 
 YachtOS MVP will not attempt to become:
