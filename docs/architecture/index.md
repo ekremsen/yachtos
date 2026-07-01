@@ -67,6 +67,7 @@ The architecture documentation is divided into the following areas:
 - File Storage
 - Notifications
 - Deployment
+- MCP
 
 Each area has its own dedicated document.
 
