@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "yachtos": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:\\laragon\\www\\yachtos"
+      ]
+    }
+  }
+}
