@@ -36,6 +36,13 @@ Examples:
 - ADR-0001-modular-monolith.md
 - ADR-0002-use-rest-api-for-mvp.md
 - ADR-0003-rest-endpoint-conventions.md
+- ADR-0004-frontend-stack.md
+- ADR-0005-design-system.md
+- ADR-0006-backend-folder-architecture.md
+- ADR-0007-identity-model.md
+- ADR-0008-membership-model.md
+- ADR-0009-authorization-model.md
+- ADR-0010-tenant-context-strategy.md
 
 ---
 
