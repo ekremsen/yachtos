@@ -21,6 +21,12 @@ Authorization is handled separately.
 
 ## Authentication Strategy
 
+The implemented foundation uses Laravel Sanctum bearer tokens with a configurable
+24-hour default lifetime. Credential hashes remain on `users.password`, while
+`Support/Auth` owns authentication. See
+[ADR-0011](../adr/ADR-0011-authenticated-tenant-foundation.md) and the
+[implementation contract](authenticated-tenant-context.md) for endpoints and enforcement.
+
 YachtOS will use token-based authentication.
 
 Authenticated users receive an access token after successful login.

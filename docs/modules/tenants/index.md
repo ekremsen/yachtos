@@ -11,7 +11,9 @@
 
 The Tenant module represents a yacht operating organization within YachtOS.
 
-Every yacht, user, crew member, inventory item, maintenance record and operational data belongs to exactly one tenant.
+Every yacht, crew assignment, inventory item, maintenance record and operational
+record belongs to exactly one tenant. User identity is connected to organizations
+through tenant membership, as established by ADR-0008.
 
 The Tenant module provides complete data isolation between different organizations using the platform.
 
@@ -30,7 +32,7 @@ Each tenant should experience YachtOS as if it were their own private system.
 - Every tenant owns its own data.
 - Data must never be accessible across tenants.
 - Every yacht belongs to one tenant.
-- Every user belongs to one tenant.
+- Users access one active tenant through valid membership in the MVP; identity may exist before membership.
 - Every operational record belongs to one tenant.
 - Tenant administrators manage their own users and yachts.
 

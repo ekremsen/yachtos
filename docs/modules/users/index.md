@@ -65,7 +65,7 @@ The MVP will not include:
 
 - Social login
 - Multi-factor authentication
-- API tokens
+- User-managed integration/API tokens (login access tokens are implemented by Support/Auth under ADR-0011)
 - Single Sign-On (SSO)
 - External identity providers
 

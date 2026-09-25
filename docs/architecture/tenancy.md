@@ -52,6 +52,11 @@ Cross-tenant access is strictly prohibited.
 
 ## Tenant Context
 
+The foundation derives context server-side from exactly one valid active tenant
+membership. Client-supplied tenant identifiers cannot select context. See
+[Authenticated Tenant Context](authenticated-tenant-context.md) for membership
+date boundaries, request scoping and the incomplete-provisioning exception.
+
 After authentication, the application determines the active tenant.
 
 Every business query must automatically apply tenant filtering.

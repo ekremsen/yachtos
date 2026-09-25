@@ -37,10 +37,13 @@ Represents a platform user.
 
 | Column | Description |
 |---------|-------------|
-| id | Unique identifier |
+| id | UUID primary key |
 | first_name | User's first name |
 | last_name | User's last name |
 | email | Unique email address |
+| password | Hash physically stored here; credential operations owned by Support/Auth |
+| email_verified_at | Nullable verification timestamp; no verification workflow in this increment |
+| remember_token | Nullable Laravel compatibility field; bearer API does not use remember-me sessions |
 | phone | Contact phone number |
 | avatar | Profile image |
 | language | Preferred language |
@@ -56,11 +59,17 @@ Represents a platform user.
 
 User
 
-└── Yacht Memberships
+├── Tenant Memberships (implemented; owned by Tenants)
+└── Yacht Memberships (future increment; owned by Yachts)
 
 ---
 
 ## Design Rules
+
+- Foundation emails are normalized to lowercase and trimmed before persistence and login.
+- Stored statuses are `active`, `inactive` and `archived`; new records default to `inactive`.
+- Passwords/remember tokens are hidden. Password/status are excluded from profile mass assignment.
+- Credential persistence is approved in [ADR-0011](../../adr/ADR-0011-authenticated-tenant-foundation.md); authentication remains outside Users.
 
 - Every user must have a unique email address.
 - A user represents a platform account.

@@ -43,6 +43,7 @@ Examples:
 - ADR-0008-membership-model.md
 - ADR-0009-authorization-model.md
 - ADR-0010-tenant-context-strategy.md
+- ADR-0011-authenticated-tenant-foundation.md
 
 ---
 
@@ -53,6 +54,14 @@ Examples:
 | ADR-0001 | Modular Monolith Architecture | Accepted |
 | ADR-0002 | Use REST API for MVP | Accepted |
 | ADR-0003 | REST Endpoint Conventions | Accepted |
+| ADR-0004 | Frontend Technology Stack | Accepted |
+| ADR-0005 | Design System Strategy | Accepted |
+| ADR-0006 | Backend Folder Architecture | Accepted |
+| ADR-0007 | Identity Model | Accepted |
+| ADR-0008 | Membership Model | Accepted |
+| ADR-0009 | Authorization Model | Accepted |
+| ADR-0010 | Tenant Context Strategy | Accepted |
+| ADR-0011 | Authenticated Tenant Context Foundation | Accepted |
 
 ---
 

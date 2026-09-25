@@ -17,13 +17,14 @@ The Tenant module provides the organizational boundary of YachtOS and ensures co
 
 ## Database Overview
 
-The Tenant module is built around three core entities:
+The Tenant module owns two core entities under ADR-0008:
 
 - Tenant
-- Yacht
-- Yacht Member
+- Tenant Membership
 
-These entities establish the foundation for all other business modules.
+Yachts and Yacht Memberships belong to the Yachts module and are not implemented
+in the authenticated tenant foundation. The older schema ownership in this draft
+is corrected here to match the accepted ADR.
 
 ---
 
@@ -35,7 +36,7 @@ Represents an organization using YachtOS.
 
 #### Columns
 
-- id
+- id (UUID primary key)
 - name
 - slug
 - type
@@ -54,42 +55,15 @@ Represents an organization using YachtOS.
 
 ---
 
-### yachts
+### tenant_memberships
 
-Represents a yacht managed by a tenant.
-
-#### Columns
-
-- id
-- tenant_id
-- name
-- registration_number
-- flag_country
-- home_port
-- yacht_type
-- status
-- created_at
-- updated_at
-
-#### Notes
-
-- Every yacht belongs to exactly one tenant.
-- A yacht is the operational center of YachtOS.
-- Owner and Captain information must not be stored in this table.
-
----
-
-### yacht_members
-
-Represents the relationship between users and yachts.
+Represents the historical organization relationship between a user and a tenant.
 
 #### Columns
 
-- id
-- tenant_id
-- yacht_id
-- user_id
-- role
+- id (UUID primary key)
+- tenant_id (UUID foreign key; restrict deletion)
+- user_id (UUID foreign key; restrict deletion)
 - start_date
 - end_date
 - status
@@ -98,14 +72,14 @@ Represents the relationship between users and yachts.
 
 #### Notes
 
-- A user may have multiple yacht memberships over time.
+- A user may have multiple historical tenant memberships over time.
 - Membership history must always be preserved.
-- Active memberships define current responsibilities.
-- Supported roles include:
-  - Owner
-  - Captain
-  - Crew
-  - Engineer
+- Access requires exactly one currently valid active membership and an active tenant.
+- Memberships have `active`, `inactive` or `archived` status, defaulting to `inactive`.
+- Start date is inclusive; end date is exclusive; validity uses the current UTC date.
+- Multiple current memberships fail closed, including duplicates for one tenant.
+- An index covers user/status/start/end lookup, and tenant_id is indexed.
+- No organization or yacht roles are stored here in this foundation increment; RBAC is deferred.
 
 ---
 
@@ -114,25 +88,22 @@ Represents the relationship between users and yachts.
 ```text
 Tenant
 │
-└── Yacht
-     │
-     └── Yacht Member
-            │
-            └── User
+└── Tenant Membership
+       └── User
 ```
 
 ---
 
 ## Design Rules
 
-- Every yacht belongs to exactly one tenant.
-- Every yacht member belongs to exactly one tenant.
-- Every yacht member belongs to exactly one yacht.
-- Owner and Captain relationships are managed through `yacht_members`.
+- Every tenant membership references one tenant and one user.
+- Tenants use `active`, `suspended` or `archived` status; the database default is `suspended`.
+- Users and tenants use UUID keys; profile records contain no direct tenant or role column.
 - Historical memberships must never be deleted.
-- Historical yacht records must never be deleted.
 - Hard delete is prohibited for business data.
 - Data isolation between tenants is mandatory.
+- Internal foundation provisioning may be incomplete under [ADR-0011](../../adr/ADR-0011-authenticated-tenant-foundation.md). Active access does not imply completed operational onboarding.
+- Yacht and yacht-membership schema ownership remains with Yachts.
 
 ---
 
