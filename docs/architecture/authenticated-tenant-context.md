@@ -14,7 +14,7 @@
 - `app/Support/Tenancy`: scoped context and resolution middleware.
 - `routes/api.php`: central routing; controllers delegate workflows.
 
-No RBAC, public provisioning, registration, membership management, Yachts or other operational modules are implemented. The Next.js UI remains unchanged.
+No RBAC, public provisioning, registration, membership management, Yachts or other operational modules are implemented. Increment 2 connects the existing Next.js visual design to these endpoints; see [frontend authentication](frontend-authentication.md).
 
 ## Persistence and provisioning
 
@@ -136,9 +136,11 @@ empty local development schema. After verifying the effective environment was
 migrations and the existing development seeder were run successfully. No migration
 history was changed to accommodate the old local schema.
 
-The seeder creates one development test identity with no tenant membership; it
-does not provision an operational organization or grant tenant access. It is not
-a production provisioning mechanism. Other databases that already applied the
+Increment 2 updates the seeder to create an idempotent, development-only active
+identity, tenant and membership for real login verification. It still does not
+provision a completed operational organization and does nothing outside local/testing.
+See [development setup and credentials](frontend-authentication.md#local-setup).
+Other databases that already applied the
 old scaffold migration still need an explicitly reviewed transition. Never run
 `migrate:fresh` against a persistent database without explicit authorization.
 
