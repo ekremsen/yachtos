@@ -7,13 +7,14 @@ YachtOS is a yacht operations platform built as a modular monolith.
 ```text
 apps/
 ├── api/    Laravel backend
-└── web/    Next.js visual prototype
+└── web/    Next.js UI with API authentication integration
 docs/       Product, engineering, architecture, ADR, module, and roadmap documentation
 ```
 
 The Laravel application lives in `apps/api` and implements bearer login/logout and
-current-tenant lookup. The Next.js UI in `apps/web` remains a visual prototype and
-is not integrated with these endpoints.
+current-tenant lookup. The Next.js UI in `apps/web` integrates these endpoints for
+login, protected routes, session restoration, tenant display and logout. Business
+module screens remain visual prototypes.
 
 ## Backend Development
 
@@ -34,6 +35,10 @@ composer run dev
 ```
 
 ## Documentation
+
+See [frontend authentication](docs/architecture/frontend-authentication.md) for
+local frontend/API setup, development-only credentials, token storage trade-offs
+and Increment 2 verification results.
 
 The [authenticated tenant contract](docs/architecture/authenticated-tenant-context.md)
 documents configuration, API examples, tests and migration notes. The original users

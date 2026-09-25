@@ -6,6 +6,7 @@ import { useState } from "react";
 import * as Icons from "lucide-react";
 import { navigation, screenCount } from "@/data/screens";
 import { Avatar, Badge, Button } from "@/components/ui";
+import { RequireAuth, useAuth } from "@/lib/auth/auth-provider";
 import { cn } from "@/lib/utils";
 
 const iconMap: Record<string, Icons.LucideIcon> = {
@@ -17,10 +18,17 @@ const iconMap: Record<string, Icons.LucideIcon> = {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
-  const [role, setRole] = useState("Captain");
+  if (["/login", "/forgot-password", "/reset-password"].includes(pathname) || pathname.startsWith("/invitation/")) return <>{children}</>;
+  return <RequireAuth><ProtectedShell>{children}</ProtectedShell></RequireAuth>;
+}
 
-  if (["/login", "/forgot-password", "/reset-password"].includes(pathname) || pathname.startsWith("/invitation/") || pathname.startsWith("/onboarding/")) return <>{children}</>;
+function ProtectedShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  const { session, tenant, logout } = useAuth();
+  const user = session!.user;
+
+  if (pathname.startsWith("/onboarding/")) return <>{children}</>;
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[252px_minmax(0,1fr)]">
@@ -45,7 +53,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <section className="min-w-0">
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-[var(--line)] bg-white/90 px-4 backdrop-blur md:px-7">
           <div className="flex items-center gap-3"><button className="grid size-10 place-items-center rounded-xl border border-[var(--line)] lg:hidden" onClick={() => setOpen(true)}><Icons.Menu className="size-5" /></button><div className="hidden items-center gap-2 text-sm text-[var(--muted)] sm:flex"><Icons.MapPin className="size-4" />Göcek Marina <span className="text-slate-300">•</span> 24°C</div></div>
-          <div className="flex items-center gap-2"><button className="relative grid size-10 place-items-center rounded-xl border border-[var(--line)] bg-white"><Icons.Bell className="size-[18px]" /><span className="absolute right-2 top-2 size-2 rounded-full bg-[var(--danger)] ring-2 ring-white" /></button><select aria-label="Rol seç" value={role} onChange={(e) => setRole(e.target.value)} className="hidden h-10 rounded-xl border border-[var(--line)] bg-white px-3 text-sm font-semibold sm:block"><option>Owner</option><option>Captain</option><option>Engineer</option><option>Crew Member</option><option>Stewardess</option><option>Accountant</option></select><Avatar initials="EŞ" /><div className="hidden text-sm md:block"><div className="font-semibold">Ekrem Şen</div><div className="text-xs text-[var(--muted)]">{role}</div></div></div>
+          <div className="flex items-center gap-2"><button className="relative grid size-10 place-items-center rounded-xl border border-[var(--line)] bg-white"><Icons.Bell className="size-[18px]" /><span className="absolute right-2 top-2 size-2 rounded-full bg-[var(--danger)] ring-2 ring-white" /></button><select aria-label="Rol (prototip)" title="Rol yönetimi henüz uygulanmadı" value="Captain" disabled className="hidden h-10 rounded-xl border border-[var(--line)] bg-white px-3 text-sm font-semibold sm:block"><option>Owner</option><option>Captain</option><option>Engineer</option><option>Crew Member</option><option>Stewardess</option><option>Accountant</option></select><Avatar initials={`${user.first_name[0] ?? ""}${user.last_name[0] ?? ""}`} /><div className="hidden text-sm md:block"><div className="font-semibold">{user.first_name} {user.last_name}</div><div className="text-xs text-[var(--muted)]">{tenant?.name}</div></div><Button variant="ghost" aria-label="Çıkış yap" title="Çıkış yap" onClick={() => void logout()}><Icons.LogOut className="size-4" /></Button></div>
         </header>
         <main className="mx-auto max-w-[1500px] p-4 md:p-7">{children}</main>
       </section>
