@@ -49,6 +49,11 @@ The following resources belong to their own modules:
 
 ## Endpoints
 
+Only `GET /api/tenant` is implemented in the foundation. Update and settings
+endpoints below remain planned. Current-tenant reads require valid active membership;
+RBAC is deferred. See [the implementation contract](../../architecture/authenticated-tenant-context.md)
+for responses and the server-derived tenant boundary.
+
 ### Get Current Tenant
 
 ```http

@@ -17,6 +17,11 @@ A tenant is a technical and organizational boundary used to isolate yacht operat
 
 ## Business Rules
 
+Foundation exception approved in [ADR-0011](../../adr/ADR-0011-authenticated-tenant-foundation.md):
+tests and internal provisioning may temporarily create tenants without yachts,
+Owners/Captains or administrators. These are not completed operational organizations.
+BR-002 and BR-009 remain requirements for operational onboarding in later increments.
+
 ### BR-001
 
 A tenant represents one yacht operating organization.
