@@ -36,7 +36,7 @@ export const screens: ScreenDefinition[] = [
     ["/yachts/azure/activity", "Yat Aktivite Geçmişi", "list"],
   ]),
   ...define("Mürettebat", [
-    ["/crew", "Mürettebat", "list"], ["/crew/cem-arslan", "Cem Arslan", "detail"], ["/crew/new", "Yeni Personel", "form"],
+    ["/crew", "Mürettebat", "list", "Aktif yatın gerçek mürettebat listesi."], ["/crew/cem-arslan", "Mürettebat Üyesi", "detail"], ["/crew/new", "Yeni Personel", "form"],
     ["/crew/cem-arslan/edit", "Personel Bilgilerini Düzenle", "form"], ["/crew/schedule", "Çalışma Programı", "calendar"],
     ["/crew/leaves", "İzin Yönetimi", "list"], ["/crew/documents", "Personel Belgeleri", "list"], ["/crew/payroll", "Maaş ve Ödemeler", "list"],
   ]),
@@ -96,6 +96,15 @@ export const screens: ScreenDefinition[] = [
 ];
 
 export const screenByPath = new Map(screens.map((screen) => [screen.path, screen]));
+
+export function resolveScreen(path: string): ScreenDefinition | undefined {
+  const exact = screenByPath.get(path);
+  if (exact) return exact;
+  if (/^\/crew\/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(\/edit)?$/i.test(path)) {
+    return { path, title: path.endsWith("/edit") ? "Personel Bilgilerini Düzenle" : "Mürettebat Üyesi", description: "Aktif yat mürettebat bilgileri.", kind: path.endsWith("/edit") ? "form" : "detail", module: "Mürettebat" };
+  }
+  return undefined;
+}
 
 export const navigation = [
   { label: "Genel Bakış", href: "/dashboard", icon: "LayoutDashboard" },

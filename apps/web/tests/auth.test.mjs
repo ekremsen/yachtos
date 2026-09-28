@@ -85,11 +85,39 @@ test('API sends an explicit yacht UUID only when provided', async () => {
   await apiRequest('/yacht', { token: '1|test', yachtId: 'a7de0000-0000-4000-8000-000000000001' });
 });
 
+test('active yacht header accompanies authenticated feature requests', async () => {
+  process.env.NEXT_PUBLIC_API_URL = 'http://localhost:8000';
+  globalThis.fetch = async (url, init) => {
+    assert.equal(url, 'http://localhost:8000/api/crew');
+    assert.equal(init.headers.Authorization, 'Bearer 1|test');
+    assert.equal(init.headers['X-Yacht-Id'], 'a7de0000-0000-4000-8000-000000000001');
+    assert.equal(init.cache, 'no-store');
+    return Response.json({ data: [] });
+  };
+  await apiRequest('/crew', { token: '1|test', yachtId: 'a7de0000-0000-4000-8000-000000000001' });
+});
+
+test('Crew create and edit use POST and PATCH with the active yacht header', async () => {
+  process.env.NEXT_PUBLIC_API_URL = 'http://localhost:8000';
+  for (const [method, url] of [['POST', 'http://localhost:8000/api/crew'], ['PATCH', 'http://localhost:8000/api/crew/member-id']]) {
+    globalThis.fetch = async (actualUrl, init) => {
+      assert.equal(actualUrl, url);
+      assert.equal(init.method, method);
+      assert.equal(init.headers['X-Yacht-Id'], 'active-yacht');
+      assert.deepEqual(JSON.parse(init.body), { first_name: 'A', last_name: 'B' });
+      return Response.json({ data: { id: 'member-id' } });
+    };
+    await apiRequest(method === 'POST' ? '/crew' : '/crew/member-id', {
+      method, token: '1|test', yachtId: 'active-yacht', body: { first_name: 'A', last_name: 'B' },
+    });
+  }
+});
+
 test('validation errors remain structured and server internals are not surfaced', async () => {
   process.env.NEXT_PUBLIC_API_URL = 'http://localhost:8000';
   globalThis.fetch = async () => Response.json({ message: 'internal detail', errors: { email: ['Required'] } }, { status: 422 });
   await assert.rejects(apiRequest('/auth/login'), error => error instanceof ApiError && error.status === 422 && error.errors.email[0] === 'Required' && !error.message.includes('internal'));
-  for (const status of [401, 403, 429, 500]) {
+  for (const status of [401, 403, 404, 429, 500]) {
     globalThis.fetch = async () => new Response('internal detail', { status });
     await assert.rejects(apiRequest('/tenant'), error => error.status === status && !error.message.includes('internal'));
   }

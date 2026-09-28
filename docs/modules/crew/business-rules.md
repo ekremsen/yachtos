@@ -1,96 +1,11 @@
 # Crew Business Rules
 
-**Version:** 1.0  
-**Status:** Draft  
-**Document Owner:** Product Team  
-**Last Updated:** 29 June 2026
-
----
-
-## Purpose
-
-This document defines the business rules for the Crew module.
-
----
-
-## Business Rules
-
-### BR-001
-
-Every crew assignment must belong to exactly one yacht.
-
----
-
-### BR-002
-
-Every crew assignment must belong to exactly one user.
-
----
-
-### BR-003
-
-A user may serve on multiple yachts over time.
-
-Historical assignments must always be preserved.
-
----
-
-### BR-004
-
-A crew member may only have one active assignment on the same yacht at the same time.
-
----
-
-### BR-005
-
-Crew members are assigned through the Crew module.
-
-Platform users are managed by the Users module.
-
----
-
-### BR-006
-
-Crew assignments must have a start date.
-
-An end date is optional until the assignment is completed.
-
----
-
-### BR-007
-
-Crew certifications may have expiration dates.
-
-Expired certifications must be identifiable by the system.
-
----
-
-### BR-008
-
-Removing a crew member from a yacht must not delete historical operational records.
-
----
-
-### BR-009
-
-Crew members cannot access yachts outside their tenant.
-
----
-
-### BR-010
-
-A yacht may operate temporarily with incomplete crew assignments.
-
-The system must not require every possible crew position to be filled.
-
----
-
-## Validation Rules
-
-The system must validate:
-
-- User existence
-- Yacht existence
-- Tenant ownership
-- Assignment dates
-- Active assignment conflicts
+- CrewMember describes an operational person aboard a yacht; it is not a login identity.
+- YachtMembership describes permission for an authenticated User to operate a yacht; it is not a crew roster entry.
+- Every CrewMember belongs to exactly one tenant and yacht. Both are assigned from resolved server contexts and cannot be changed through API input.
+- Reads and writes are scoped to the current authorized YachtContext. Other-yacht UUIDs return the same not-found response as unknown UUIDs.
+- Names are required. Position, email, phone, nationality and service dates may be incomplete.
+- Email must be a valid address when supplied; phone is bounded text; nationality is a two-letter country code when supplied.
+- Status is `active` or `inactive`. Ending service uses inactive status and an end date, retaining the record.
+- An end date must follow the start date when both are present.
+- Hard deletion, credentials, payroll, HR compliance, certifications and sensitive employee data are outside this increment.

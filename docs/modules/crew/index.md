@@ -1,76 +1,26 @@
 # Crew Module
 
-**Version:** 1.0  
-**Status:** Draft  
-**Document Owner:** Product Team  
-**Last Updated:** 29 June 2026
+**Status:** Increment 4 operational roster scope
 
----
+## Business purpose
 
-## Purpose
+Crew answers the yacht operations question: **who is serving aboard this yacht?** A CrewMember is an operational person with a yacht assignment. It does not require YachtOS credentials.
 
-The Crew module manages operational crew members assigned to yachts.
+`User` is an authenticated platform identity. `YachtMembership` authorizes a User to operate a yacht and carries the minimal authorization role. `CrewMember` records an onboard person, their contact details, position, employment status and service dates. These relationships are not interchangeable; crew creation does not create Users or YachtMemberships.
 
-It provides a centralized place for tracking crew assignments, employment information and operational responsibilities.
+## Increment 4 scope
 
-The Crew module focuses on crew operations rather than platform access.
+The active yacht's roster can be viewed, created and edited. Crew records belong to exactly one tenant and yacht; ownership is derived from the server's `TenantContext` and `YachtContext`. Inaccessible records are returned as not found. Records are never hard deleted; mark a member inactive and set an end date to preserve service history.
 
----
+Profiles are intentionally minimal: names are required; position, contact details, nationality, status and service dates are optional where appropriate. Salary, payroll, recruitment, medical data, passport documents, certifications, scheduling, leave and advanced HR workflows are deferred.
 
-## Business Goal
+## Rules and acceptance
 
-Provide a structured system for managing crew members assigned to yachts while preserving historical assignments.
+- A CrewMember has one immutable tenant and yacht.
+- User supplied tenant/yacht identifiers never select ownership.
+- End date must be later than start date when both are set.
+- Only `active` and `inactive` status are supported in this first operational scope.
+- Current-yacht access is enforced in every query and database composite foreign key.
+- List, detail, create and edit work in the existing Crew UI; loading, empty, validation and API failure states are visible.
 
----
-
-## Responsibilities
-
-The Crew module is responsible for:
-
-- Crew assignments
-- Crew employment information
-- Crew operational status
-- Crew history
-- Crew documents
-- Crew certifications
-
-The Crew module is **not** responsible for:
-
-- User authentication
-- User profiles
-- Yacht management
-- Inventory
-- Maintenance
-
-These responsibilities belong to their respective modules.
-
----
-
-## Initial Scope
-
-The MVP should allow users to:
-
-- Assign crew members to yachts
-- Update crew information
-- Remove crew assignments
-- View crew history
-- Track certifications
-
----
-
-## Out of Scope
-
-The MVP will not include:
-
-- Payroll
-- HR management
-- Leave management
-- Performance evaluations
-
-These capabilities may be introduced in future versions.
-
----
-
-## Success Criteria
-
-Captains can easily manage yacht crew members while preserving assignment history and certification records.
+See [database](database.md), [business rules](business-rules.md), [API](api.md), [UI](ui.md), and [acceptance criteria](acceptance-criteria.md).
