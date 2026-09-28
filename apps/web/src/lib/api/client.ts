@@ -18,6 +18,7 @@ export class ApiError extends Error {
 export async function apiRequest<T>(path: string, options: {
   method?: "GET" | "POST";
   token?: string;
+  yachtId?: string;
   body?: unknown;
 } = {}): Promise<T> {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -30,6 +31,7 @@ export async function apiRequest<T>(path: string, options: {
         Accept: "application/json",
         ...(options.body !== undefined ? { "Content-Type": "application/json" } : {}),
         ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
+        ...(options.yachtId ? { "X-Yacht-Id": options.yachtId } : {}),
       },
       body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
       credentials: "omit",

@@ -3,11 +3,12 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { ApiError, apiRequest } from "@/lib/api/client";
-import { clearSession, readSession, saveSession, SESSION_KEY, type Session, type Tenant } from "./session";
+import { clearSelectedYacht, clearSession, readSelectedYacht, readSession, saveSelectedYacht, saveSession, SESSION_KEY, type Session, type Tenant, type Yacht } from "./session";
 
 type Status = "loading" | "anonymous" | "authenticated" | "error";
 type Auth = {
-  status: Status; session: Session | null; tenant: Tenant | null;
+  status: Status; session: Session | null; tenant: Tenant | null; yachts: Yacht[]; activeYacht: Yacht | null; yachtSelectionRequired: boolean;
+  selectYacht: (id: string) => Promise<void>;
   login: (email: string, password: string, remember: boolean) => Promise<void>;
   logout: () => Promise<void>; restore: () => Promise<void>;
 };
@@ -17,6 +18,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<Status>("loading");
   const [session, setSession] = useState<Session | null>(null);
   const [tenant, setTenant] = useState<Tenant | null>(null);
+  const [yachts, setYachts] = useState<Yacht[]>([]);
+  const [activeYacht, setActiveYacht] = useState<Yacht | null>(null);
+  const [yachtSelectionRequired, setYachtSelectionRequired] = useState(false);
   const generation = useRef(0);
   const loginPending = useRef(false);
   const router = useRouter();
@@ -26,6 +30,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     clearSession();
     setSession(null);
     setTenant(null);
+    setYachts([]);
+    setActiveYacht(null);
+    setYachtSelectionRequired(false);
+    clearSelectedYacht();
     setStatus("anonymous");
   }, []);
 
@@ -38,8 +46,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await apiRequest<{ data: Tenant }>("/tenant", { token: saved.access_token });
       if (attempt !== generation.current) return;
+      const list = await apiRequest<{ data: Yacht[] }>("/yachts", { token: saved.access_token });
+      if (attempt !== generation.current) return;
+      const yachtState = await resolveYacht(saved.access_token, list.data);
+      if (attempt !== generation.current) return;
       setSession(saved);
       setTenant(response.data);
+      setYachts(yachtState.yachts);
+      setActiveYacht(yachtState.activeYacht);
+      setYachtSelectionRequired(yachtState.selectionRequired);
       setStatus("authenticated");
     } catch (error) {
       if (attempt !== generation.current) return;
@@ -47,6 +62,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       else setStatus("error");
     }
   }, [clear]);
+
+  async function resolveYacht(token: string, list: Yacht[]) {
+    const selectedId = readSelectedYacht();
+    if (selectedId) {
+      try {
+        const selected = await apiRequest<{ data: Yacht }>("/yacht", { token, yachtId: selectedId });
+        return { yachts: list, activeYacht: selected.data, selectionRequired: false };
+      } catch (error) {
+        if (!(error instanceof ApiError) || error.status !== 403) throw error;
+        clearSelectedYacht();
+      }
+    }
+    if (list.length === 1) {
+      const resolved = await apiRequest<{ data: Yacht }>("/yacht", { token });
+      return { yachts: list, activeYacht: resolved.data, selectionRequired: false };
+    } else {
+      return { yachts: list, activeYacht: null, selectionRequired: list.length > 1 };
+    }
+  }
+
+  async function selectYacht(id: string) {
+    if (!session) return;
+    const resolved = await apiRequest<{ data: Yacht }>("/yacht", { token: session.access_token, yachtId: id });
+    saveSelectedYacht(resolved.data.id);
+    setActiveYacht(resolved.data);
+    setYachtSelectionRequired(false);
+  }
 
   useEffect(() => {
     void restore();
@@ -79,10 +121,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await apiRequest<{ data: Session }>("/auth/login", { method: "POST", body: { email, password } });
       issued = { access_token: response.data.access_token, expires_at: response.data.expires_at, user: response.data.user };
       const resolved = await apiRequest<{ data: Tenant }>("/tenant", { token: issued.access_token });
+      const yachtList = await apiRequest<{ data: Yacht[] }>("/yachts", { token: issued.access_token });
+      const yachtState = await resolveYacht(issued.access_token, yachtList.data);
       if (attempt !== generation.current) throw new Error("Oturum değişti. Lütfen tekrar giriş yapın.");
       saveSession(issued, remember);
       setSession(issued);
       setTenant(resolved.data);
+      setYachts(yachtState.yachts);
+      setActiveYacht(yachtState.activeYacht);
+      setYachtSelectionRequired(yachtState.selectionRequired);
       setStatus("authenticated");
       router.replace("/dashboard");
     } catch (error) {
@@ -101,7 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (token) await apiRequest("/auth/logout", { method: "POST", token }).catch(() => {});
   }
 
-  return <AuthContext.Provider value={{ status, session, tenant, login, logout, restore }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ status, session, tenant, yachts, activeYacht, yachtSelectionRequired, selectYacht, login, logout, restore }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

@@ -4,6 +4,9 @@ namespace Tests\Feature;
 
 use App\Modules\Tenants\Models\TenantMembership;
 use App\Modules\Users\Models\User;
+use App\Modules\Yachts\Models\Yacht;
+use App\Modules\Yachts\Models\YachtMembership;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -20,6 +23,8 @@ class DevelopmentSeederTest extends TestCase
         $this->assertDatabaseCount('users', 1);
         $this->assertDatabaseCount('tenants', 1);
         $this->assertDatabaseCount('tenant_memberships', 1);
+        $this->assertDatabaseCount('yachts', 1);
+        $this->assertDatabaseCount('yacht_memberships', 1);
         $this->assertTrue(Hash::check('YachtOS-Dev-2026!', User::sole()->password));
         $this->assertSame(1, TenantMembership::currentlyActive()->count());
 
@@ -28,16 +33,21 @@ class DevelopmentSeederTest extends TestCase
         ])->assertOk()->json('data.access_token');
 
         $this->withToken($token)->getJson('/api/tenant')->assertOk()
-            ->assertJsonPath('data.name', 'Azure Development');
+            ->assertJsonPath('data.name', 'Azure Yachting');
+        $this->withToken($token)->getJson('/api/yacht')->assertOk()->assertJsonPath('data.name', 'M/Y Azure');
+        $this->assertSame(1, Yacht::count());
+        $this->assertSame(1, YachtMembership::count());
     }
 
     public function test_seeder_never_creates_development_credentials_in_production(): void
     {
         $this->app->instance('env', 'production');
-        $this->app->make(\Database\Seeders\DatabaseSeeder::class)->run();
+        $this->app->make(DatabaseSeeder::class)->run();
 
         $this->assertDatabaseCount('users', 0);
         $this->assertDatabaseCount('tenants', 0);
         $this->assertDatabaseCount('tenant_memberships', 0);
+        $this->assertDatabaseCount('yachts', 0);
+        $this->assertDatabaseCount('yacht_memberships', 0);
     }
 }

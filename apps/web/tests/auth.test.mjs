@@ -1,7 +1,7 @@
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { ApiError, apiRequest } from '../src/lib/api/client.ts';
-import { SESSION_KEY, parseSession, saveSession, readSession, clearSession } from '../src/lib/auth/session.ts';
+import { SESSION_KEY, YACHT_KEY, parseSession, saveSession, readSession, clearSession, readSelectedYacht, saveSelectedYacht, clearSelectedYacht } from '../src/lib/auth/session.ts';
 
 const originalFetch = globalThis.fetch;
 afterEach(() => { globalThis.fetch = originalFetch; delete globalThis.window; });
@@ -27,6 +27,19 @@ test('remember choice persists only minimal session in the selected storage, log
   assert.deepEqual(readSession(), saved);
   clearSession();
   assert.equal(readSession(), null);
+});
+
+test('selected yacht persistence stores only a UUID and clears inaccessible selection', () => {
+  globalThis.window = { localStorage: storage(), sessionStorage: storage() };
+  const id = 'a7de0000-0000-4000-8000-000000000001';
+  saveSelectedYacht(id);
+  assert.equal(window.localStorage.getItem(YACHT_KEY), id);
+  assert.equal(window.sessionStorage.getItem(YACHT_KEY), null);
+  assert.equal(readSelectedYacht(), id);
+  window.localStorage.setItem(YACHT_KEY, 'bad');
+  assert.equal(readSelectedYacht(), null);
+  clearSelectedYacht();
+  assert.equal(window.localStorage.getItem(YACHT_KEY), null);
 });
 
 test('unavailable browser storage does not break local logout', () => {
@@ -61,6 +74,15 @@ test('API sends bearer, JSON and no cookies; handles empty logout response', asy
     return new Response(null, { status: 204 });
   };
   assert.equal(await apiRequest('/auth/logout', { method: 'POST', token: '1|test' }), undefined);
+});
+
+test('API sends an explicit yacht UUID only when provided', async () => {
+  process.env.NEXT_PUBLIC_API_URL = 'http://localhost:8000';
+  globalThis.fetch = async (_url, init) => {
+    assert.equal(init.headers['X-Yacht-Id'], 'a7de0000-0000-4000-8000-000000000001');
+    return Response.json({ data: [] });
+  };
+  await apiRequest('/yacht', { token: '1|test', yachtId: 'a7de0000-0000-4000-8000-000000000001' });
 });
 
 test('validation errors remain structured and server internals are not surfaced', async () => {

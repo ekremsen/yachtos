@@ -14,7 +14,7 @@
 - `app/Support/Tenancy`: scoped context and resolution middleware.
 - `routes/api.php`: central routing; controllers delegate workflows.
 
-No RBAC, public provisioning, registration, membership management, Yachts or other operational modules are implemented. Increment 2 connects the existing Next.js visual design to these endpoints; see [frontend authentication](frontend-authentication.md).
+Increment 2 connects the Next.js visual design to authentication and tenant endpoints; Increment 3 adds request-scoped yacht resolution and frontend selection. See [Yacht context](yacht-context.md) and [frontend authentication](frontend-authentication.md).
 
 ## Persistence and provisioning
 

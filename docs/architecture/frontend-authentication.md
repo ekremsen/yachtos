@@ -1,8 +1,7 @@
-# Frontend authentication integration — Increment 2
+# Frontend authentication and yacht context integration — Increment 2/3
 
-Implemented against the existing [bearer API contract](authenticated-tenant-context.md)
-and [ADR-0011](../adr/ADR-0011-authenticated-tenant-foundation.md). No domain,
-tenant-selection, RBAC, cookie-authentication or onboarding changes are introduced.
+Implemented against the existing [bearer API contract](authenticated-tenant-context.md),
+[Yacht context contract](yacht-context.md) and [ADR-0011](../adr/ADR-0011-authenticated-tenant-foundation.md).
 
 ## Ownership and flow
 
@@ -77,11 +76,13 @@ the same user, tenant and membership. It does not delete unrelated records.
 |---|---|
 | Email | `captain@azureyachting.com` |
 | Password | `YachtOS-Dev-2026!` |
-| Tenant | `Azure Development` (`azure-development`) |
+| Tenant | `Azure Yachting` (`azure-development`) |
+| Yacht | `M/Y Azure` |
 | Membership | Active, no end date |
 
-This is an operationally incomplete foundation organization; the displayed name
-“Captain” is fixture text, not an assigned role. No Yacht records are created.
+This is a development-only foundation organization; the displayed name “Captain”
+is fixture text, not an assigned role. The deterministic yacht membership is a
+minimal access fixture, not crew modeling or expanded RBAC.
 Never provision these known credentials in a real deployment.
 
 From `apps/web`:
@@ -130,7 +131,7 @@ disabled. CORS is a browser policy, not a replacement for authentication.
 | Invalid credentials | HTTP `401` verified; browser error display pending |
 | Valid credentials | HTTP login and tenant resolution verified; dashboard navigation pending |
 | Valid reload | Storage unit tests pass; browser reload with both choices pending |
-| Tenant display | API returns `Azure Development`; visual display pending |
+| Tenant display | API returns `Azure Yachting`; rendered in the authenticated header |
 | Expired token | Backend tests pass; browser redirect pending |
 | Logout | HTTP `204` verified; browser clearing and redirect pending |
 | Revoked/invalid token | HTTP revoked-token `401` and backend tests pass; browser redirect pending |

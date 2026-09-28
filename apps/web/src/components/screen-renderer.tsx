@@ -18,7 +18,8 @@ function tone(status: string) {
 }
 
 function PageHeader({ screen }: { screen: ScreenDefinition }) {
-  return <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between"><div><div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[.12em] text-[var(--sea)]">{screen.module}<Icons.ChevronRight className="size-3" />M/Y Azure</div><h1 className="text-2xl font-bold tracking-[-.035em] text-[var(--ink)] md:text-[30px]">{screen.title}</h1><p className="mt-1.5 max-w-2xl text-sm text-[var(--muted)]">{screen.description}</p></div><div className="flex gap-2"><Button variant="secondary"><Icons.Download className="size-4" />Dışa aktar</Button><Button><Icons.Plus className="size-4" />Yeni kayıt</Button></div></div>;
+  const yachtName = useAuth().activeYacht?.name ?? "";
+  return <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between"><div><div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[.12em] text-[var(--sea)]">{screen.module}<Icons.ChevronRight className="size-3" />{yachtName}</div><h1 className="text-2xl font-bold tracking-[-.035em] text-[var(--ink)] md:text-[30px]">{screen.title}</h1><p className="mt-1.5 max-w-2xl text-sm text-[var(--muted)]">{screen.description}</p></div><div className="flex gap-2"><Button variant="secondary"><Icons.Download className="size-4" />Dışa aktar</Button><Button><Icons.Plus className="size-4" />Yeni kayıt</Button></div></div>;
 }
 
 function StatCards() {
