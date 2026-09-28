@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Modules\Crew\Models\CrewMember;
 use App\Modules\Tenants\Models\Tenant;
 use App\Modules\Tenants\Models\TenantMembership;
 use App\Modules\Users\Models\User;
@@ -56,6 +57,23 @@ class DatabaseSeeder extends Seeder
                 'user_id' => $user->id, 'yacht_id' => $yacht->id, 'role' => 'captain',
                 'status' => 'active', 'start_date' => '2026-01-01', 'end_date' => null,
             ])->save();
+
+            $crew = [
+                ['captain', 'Cem', 'Arslan', 'Captain', 'captain.crew@azureyachting.com', '+90 532 555 0101', 'TR'],
+                ['engineer', 'Mert', 'Kaya', 'Chief Engineer', 'mert.kaya@example.test', '+90 532 555 0102', 'TR'],
+                ['deckhand', 'Arda', 'Tunç', 'Deckhand', 'arda.tunc@example.test', '+90 532 555 0103', 'TR'],
+                ['steward', 'Selin', 'Yılmaz', 'Chief Stewardess', 'selin.yilmaz@example.test', '+90 532 555 0104', 'TR'],
+                ['chef', 'Deniz', 'Acar', 'Chef', 'deniz.acar@example.test', '+90 532 555 0105', 'TR'],
+            ];
+
+            foreach ($crew as $index => [$key, $first, $last, $position, $email, $phone, $nationality]) {
+                $member = CrewMember::firstOrNew(['id' => sprintf('a7de0000-0000-4000-8000-%012d', 10 + $index)]);
+                $member->forceFill([
+                    'tenant_id' => $tenant->id, 'yacht_id' => $yacht->id, 'first_name' => $first,
+                    'last_name' => $last, 'position' => $position, 'email' => $email, 'phone' => $phone,
+                    'nationality' => $nationality, 'status' => 'active', 'start_date' => '2026-01-01', 'end_date' => null,
+                ])->save();
+            }
         });
     }
 }

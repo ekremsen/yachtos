@@ -8,6 +8,7 @@ export class ApiError extends Error {
       : status === 422 ? "Lütfen form alanlarını kontrol edin."
       : status === 429 ? "Çok fazla deneme yaptınız. Bir dakika sonra tekrar deneyin."
       : "Sunucuya ulaşılamadı. Lütfen tekrar deneyin.");
+    if (status === 404) this.message = "Record not found or unavailable.";
     this.status = status;
     this.errors = errors && typeof errors === "object" ? Object.fromEntries(
       Object.entries(errors).filter(([, messages]) => Array.isArray(messages) && messages.every(message => typeof message === "string")),
@@ -16,7 +17,7 @@ export class ApiError extends Error {
 }
 
 export async function apiRequest<T>(path: string, options: {
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "PATCH";
   token?: string;
   yachtId?: string;
   body?: unknown;

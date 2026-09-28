@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { LoginScreen } from "@/components/login-screen";
+import { CrewFeature } from "@/components/crew-feature";
 import { useAuth } from "@/lib/auth/auth-provider";
 import * as Icons from "lucide-react";
 import type { ScreenDefinition } from "@/data/screens";
@@ -72,5 +73,6 @@ function Onboarding({ screen }: { screen: ScreenDefinition }) {
 export function ScreenRenderer({ screen }: { screen: ScreenDefinition }) {
   if (screen.kind === "auth") return <LoginScreen screen={screen} />;
   if (screen.kind === "onboarding") return <Onboarding screen={screen} />;
+  if (screen.path.startsWith("/crew") && ["/crew", "/crew/new", "/crew/cem-arslan", "/crew/cem-arslan/edit"].includes(screen.path) || screen.path.startsWith("/crew/") && !["/crew/schedule", "/crew/leaves", "/crew/documents", "/crew/payroll"].includes(screen.path)) return <CrewFeature screen={screen} />;
   return <div className="animate-rise"><PageHeader screen={screen} />{screen.kind === "dashboard" && <Dashboard />}{screen.kind === "list" && <ListScreen screen={screen} />}{screen.kind === "detail" && <DetailScreen screen={screen} />}{screen.kind === "form" && <FormScreen screen={screen} />}{screen.kind === "kanban" && <Kanban />}{screen.kind === "calendar" && <Calendar />}{screen.kind === "report" && <Report />}{screen.kind === "settings" && <SettingsScreen screen={screen} />}</div>;
 }

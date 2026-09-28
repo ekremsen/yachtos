@@ -2,6 +2,7 @@
 
 namespace App\Modules\Yachts\Models;
 
+use App\Modules\Crew\Models\CrewMember;
 use App\Modules\Tenants\Models\Tenant;
 use App\Modules\Users\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -35,6 +36,11 @@ class Yacht extends Model
     public function memberships(): HasMany
     {
         return $this->hasMany(YachtMembership::class);
+    }
+
+    public function crewMembers(): HasMany
+    {
+        return $this->hasMany(CrewMember::class);
     }
 
     public function scopeAccessibleTo(Builder $query, User $user, Tenant $tenant): Builder

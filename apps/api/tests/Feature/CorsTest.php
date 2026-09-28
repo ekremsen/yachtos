@@ -14,11 +14,14 @@ class CorsTest extends TestCase
 
     public function test_local_frontend_can_preflight_bearer_requests(): void
     {
-        foreach (['/api/auth/login', '/api/tenant', '/api/auth/logout'] as $path) {
+        foreach ([
+            '/api/auth/login' => 'POST', '/api/tenant' => 'GET', '/api/auth/logout' => 'POST',
+            '/api/crew' => 'PATCH',
+        ] as $path => $method) {
             $response = $this->withHeaders([
                 'Origin' => 'http://localhost:3000',
-                'Access-Control-Request-Method' => $path === '/api/tenant' ? 'GET' : 'POST',
-                'Access-Control-Request-Headers' => 'authorization,content-type',
+                'Access-Control-Request-Method' => $method,
+                'Access-Control-Request-Headers' => 'authorization,content-type,x-yacht-id',
             ])->options($path)->assertNoContent()
                 ->assertHeader('Access-Control-Allow-Origin', 'http://localhost:3000')
                 ->assertHeaderMissing('Access-Control-Allow-Credentials');

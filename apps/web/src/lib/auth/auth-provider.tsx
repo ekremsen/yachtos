@@ -9,6 +9,7 @@ type Status = "loading" | "anonymous" | "authenticated" | "error";
 type Auth = {
   status: Status; session: Session | null; tenant: Tenant | null; yachts: Yacht[]; activeYacht: Yacht | null; yachtSelectionRequired: boolean;
   selectYacht: (id: string) => Promise<void>;
+  request: <T>(path: string, options?: { method?: "GET" | "POST" | "PATCH"; body?: unknown }) => Promise<T>;
   login: (email: string, password: string, remember: boolean) => Promise<void>;
   logout: () => Promise<void>; restore: () => Promise<void>;
 };
@@ -90,6 +91,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setYachtSelectionRequired(false);
   }
 
+  const request = useCallback(async function requestWithActiveYacht<T>(path: string, options: { method?: "GET" | "POST" | "PATCH"; body?: unknown } = {}) {
+    if (!session || !activeYacht) throw new Error("Select an active yacht first.");
+    return apiRequest<T>(path, { ...options, token: session.access_token, yachtId: activeYacht.id });
+  }, [session, activeYacht]);
+
   useEffect(() => {
     void restore();
     const focus = () => { if (document.visibilityState === "visible") void restore(); };
@@ -148,7 +154,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (token) await apiRequest("/auth/logout", { method: "POST", token }).catch(() => {});
   }
 
-  return <AuthContext.Provider value={{ status, session, tenant, yachts, activeYacht, yachtSelectionRequired, selectYacht, login, logout, restore }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ status, session, tenant, yachts, activeYacht, yachtSelectionRequired, selectYacht, request, login, logout, restore }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

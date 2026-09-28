@@ -1,155 +1,18 @@
-# Crew API Design
+# Crew API
 
-**Version:** 1.0  
-**Status:** Draft  
-**Document Owner:** Engineering Team  
-**Last Updated:** 29 June 2026
+All endpoints require `auth:sanctum`, `user.active`, `tenant.context`, and `yacht.context`. The active yacht is auto-resolved or selected with `X-Yacht-Id`. The header is authorization input that the backend rechecks; body ownership fields are ignored/rejected and never trusted.
 
----
+| Method and path | Behavior |
+|---|---|
+| `GET /api/crew` | List current yacht members, ordered by last name, first name |
+| `GET /api/crew/{crewMember}` | Return one current-yacht member; other yacht and unknown IDs both return `404` |
+| `POST /api/crew` | Create from validated profile fields; tenant and yacht come from contexts |
+| `PATCH /api/crew/{crewMember}` | Update editable profile, status and dates; ownership cannot change |
 
-## Purpose
+The JSON envelope is `{ "data": ... }`. Resources expose `id`, names, position, contact details, nationality, status and service dates, not tenant/yacht ownership. Responses are not cached. Validation errors are `422`; inaccessible records are `404`; authentication/context errors follow the existing API contracts.
 
-This document defines the REST API design for the Crew module.
+## Create/update input
 
-The Crew API is responsible for managing crew assignments and certifications.
+Allowed fields: `first_name`, `last_name`, nullable `position`, `email`, `phone`, `nationality`, `status`, nullable `start_date`, nullable `end_date`. Names are required on create and optional on patch; status is `active` or `inactive`. Email is validated if present; nationality uses an ISO-style two-letter code. End date must be after start date when both values are supplied, including against the persisted counterpart during partial updates.
 
----
-
-## Responsibilities
-
-The Crew API is responsible for:
-
-- Assigning users to yachts
-- Updating crew assignments
-- Listing crew members
-- Viewing crew details
-- Managing crew certifications
-- Ending crew assignments
-
-The Crew API is **not** responsible for:
-
-- User profile management
-- Authentication
-- Yacht management
-- Payroll
-- Leave management
-
----
-
-## API Principles
-
-- REST API will be used.
-- Every request must be authenticated.
-- Every request must be authorized.
-- Every request must be scoped to the authenticated tenant.
-- Controllers must not contain business logic.
-
----
-
-## Endpoints
-
-### List Crew Assignments
-
-GET /api/crew
-
-Returns all crew assignments belonging to the authenticated tenant.
-
----
-
-### Get Crew Assignment
-
-GET /api/crew/{id}
-
-Returns detailed information for a crew assignment.
-
----
-
-### Create Crew Assignment
-
-POST /api/crew
-
-Assigns a user to a yacht.
-
----
-
-### Update Crew Assignment
-
-PUT /api/crew/{id}
-
-Updates assignment information.
-
----
-
-### End Crew Assignment
-
-PATCH /api/crew/{id}/end
-
-Ends an active crew assignment while preserving history.
-
----
-
-### List Certifications
-
-GET /api/crew/{id}/certifications
-
-Returns certifications for a crew assignment.
-
----
-
-### Add Certification
-
-POST /api/crew/{id}/certifications
-
-Adds a certification.
-
----
-
-### Update Certification
-
-PUT /api/crew/{id}/certifications/{certificationId}
-
-Updates certification information.
-
----
-
-## Authorization Rules
-
-- Users may only access crew assignments belonging to their tenant.
-- Crew creation requires the appropriate permission.
-- Crew updates require the appropriate permission.
-- Assignment history cannot be modified after completion.
-
----
-
-## Validation Rules
-
-The API must validate:
-
-- Authentication
-- Tenant ownership
-- Yacht existence
-- User existence
-- Assignment conflicts
-- Certification dates
-
----
-
-## Error Responses
-
-| Status Code | Description |
-|--------------|-------------|
-| 401 | Unauthenticated |
-| 403 | Forbidden |
-| 404 | Resource not found |
-| 409 | Business rule conflict |
-| 422 | Validation failed |
-| 500 | Internal server error |
-
----
-
-## Related Documents
-
-- business-rules.md
-- database.md
-- ui.md
-- acceptance-criteria.md
+`tenant_id`, `yacht_id`, `id`, and timestamps are not writable. There is no delete endpoint. Set status to inactive and provide an end date to retain a completed service record.

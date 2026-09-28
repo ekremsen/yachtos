@@ -2,6 +2,7 @@
 
 namespace App\Modules\Tenants\Models;
 
+use App\Modules\Crew\Models\CrewMember;
 use App\Modules\Yachts\Models\Yacht;
 use Database\Factories\TenantFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -29,5 +30,10 @@ class Tenant extends Model
     public function yachts(): HasMany
     {
         return $this->hasMany(Yacht::class);
+    }
+
+    public function crewMembers(): HasMany
+    {
+        return $this->hasMany(CrewMember::class);
     }
 }
