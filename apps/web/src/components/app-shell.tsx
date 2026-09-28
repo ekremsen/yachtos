@@ -25,7 +25,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 function ProtectedShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const { session, tenant, logout } = useAuth();
+  const { session, tenant, activeYacht, yachts, yachtSelectionRequired, selectYacht, logout } = useAuth();
   const user = session!.user;
 
   if (pathname.startsWith("/onboarding/")) return <>{children}</>;
@@ -47,7 +47,7 @@ function ProtectedShell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
         <div className="border-t border-white/10 p-4">
-          <div className="rounded-2xl bg-white/6 p-3"><div className="flex items-center gap-3"><div className="grid size-9 place-items-center rounded-xl bg-[var(--sea)]/20 text-[var(--sea)]"><Icons.Ship className="size-5" /></div><div><div className="text-xs text-white/45">Aktif yat</div><div className="text-sm font-semibold">M/Y Azure</div></div></div><div className="mt-3 flex items-center gap-2 text-xs text-white/55"><span className="size-2 rounded-full bg-emerald-400" />Göcek Marina</div></div>
+          <div className="rounded-2xl bg-white/6 p-3"><div className="flex items-center gap-3"><div className="grid size-9 place-items-center rounded-xl bg-[var(--sea)]/20 text-[var(--sea)]"><Icons.Ship className="size-5" /></div><div className="min-w-0"><div className="text-xs text-white/45">Aktif yat</div>{yachtSelectionRequired ? <select aria-label="Aktif yat seçin" className="mt-1 max-w-[170px] rounded bg-white/10 px-2 py-1 text-sm" value="" onChange={event => void selectYacht(event.target.value).catch(() => {})}><option value="" disabled>Yat seçin</option>{yachts.map(yacht => <option key={yacht.id} value={yacht.id} className="text-slate-900">{yacht.name}</option>)}</select> : <div className="truncate text-sm font-semibold">{activeYacht?.name ?? "Yat yok"}</div>}</div></div>{activeYacht?.home_port && <div className="mt-3 flex items-center gap-2 text-xs text-white/55"><span className="size-2 rounded-full bg-emerald-400" />{activeYacht.home_port}</div>}</div>
         </div>
       </aside>
       <section className="min-w-0">

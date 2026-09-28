@@ -2,6 +2,7 @@
 
 use App\Support\Auth\Http\Middleware\EnsureUserIsActive;
 use App\Support\Tenancy\Http\Middleware\ResolveTenantContext;
+use App\Support\Yachts\Http\Middleware\ResolveYachtContext;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -22,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'user.active' => EnsureUserIsActive::class,
             'tenant.context' => ResolveTenantContext::class,
+            'yacht.context' => ResolveYachtContext::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

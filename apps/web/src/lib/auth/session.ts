@@ -4,7 +4,9 @@ export type Tenant = {
   id: string; name: string; slug: string; type: string; status: string;
   country: string | null; timezone: string; currency: string;
 };
+export type Yacht = { id: string; name: string; status: string; home_port: string | null };
 export const SESSION_KEY = "yachtos.auth.v1";
+export const YACHT_KEY = "yachtos.yacht.v1";
 
 export function parseSession(raw: string | null): Session | null {
   try {
@@ -25,6 +27,21 @@ export function clearSession() {
   for (const name of ["localStorage", "sessionStorage"] as const) {
     try { window[name].removeItem(SESSION_KEY); } catch { /* Storage may be disabled. */ }
   }
+}
+
+export function readSelectedYacht(): string | null {
+  try {
+    const value = window.localStorage.getItem(YACHT_KEY);
+    return value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value) ? value : null;
+  } catch { return null; }
+}
+
+export function saveSelectedYacht(id: string) {
+  window.localStorage.setItem(YACHT_KEY, id);
+}
+
+export function clearSelectedYacht() {
+  try { window.localStorage.removeItem(YACHT_KEY); } catch { /* Storage may be disabled. */ }
 }
 
 export function readSession(): Session | null {

@@ -3,6 +3,7 @@
 namespace App\Modules\Users\Models;
 
 use App\Modules\Tenants\Models\TenantMembership;
+use App\Modules\Yachts\Models\YachtMembership;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -69,5 +70,10 @@ class User extends Authenticatable
     public function tenantMemberships(): HasMany
     {
         return $this->hasMany(TenantMembership::class);
+    }
+
+    public function yachtMemberships(): HasMany
+    {
+        return $this->hasMany(YachtMembership::class);
     }
 }
