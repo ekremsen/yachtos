@@ -143,6 +143,36 @@ test('Maintenance create, update and completion preserve payloads and active yac
   assert.equal(calls[2].init.body, undefined);
 });
 
+test('Inventory item and stock movement requests preserve signed adjustments and yacht context', async () => {
+  process.env.NEXT_PUBLIC_API_URL = 'http://localhost:8000';
+  const calls = [];
+  globalThis.fetch = async (url, init) => {
+    calls.push({ url, init });
+    return Response.json({ data: { id: 'item-id' } });
+  };
+  await apiRequest('/inventory', {
+    method: 'POST', token: '1|test', yachtId: 'active-yacht',
+    body: { name: 'Engine oil', category: 'Engine', unit: 'liter', minimum_quantity: '4.500' },
+  });
+  await apiRequest('/inventory/item-id', {
+    method: 'PATCH', token: '1|test', yachtId: 'active-yacht', body: { name: 'Oil 15W-40' },
+  });
+  for (const [type, quantity] of [['in', '12.500'], ['out', '0.500'], ['adjustment', '-0.125']]) {
+    await apiRequest('/inventory/item-id/movements', {
+      method: 'POST', token: '1|test', yachtId: 'active-yacht',
+      body: { type, quantity, reason: `${type} test` },
+    });
+  }
+  assert.equal(calls.length, 5);
+  assert.ok(calls.every(({ init }) => init.headers['X-Yacht-Id'] === 'active-yacht'));
+  assert.deepEqual(calls.map(({ init }) => init.method), ['POST', 'PATCH', 'POST', 'POST', 'POST']);
+  assert.deepEqual(calls.slice(2).map(({ init }) => JSON.parse(init.body)), [
+    { type: 'in', quantity: '12.500', reason: 'in test' },
+    { type: 'out', quantity: '0.500', reason: 'out test' },
+    { type: 'adjustment', quantity: '-0.125', reason: 'adjustment test' },
+  ]);
+});
+
 test('validation errors remain structured and server internals are not surfaced', async () => {
   process.env.NEXT_PUBLIC_API_URL = 'http://localhost:8000';
   globalThis.fetch = async () => Response.json({ message: 'internal detail', errors: { email: ['Required'] } }, { status: 422 });

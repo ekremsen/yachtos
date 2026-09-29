@@ -3,6 +3,8 @@
 namespace App\Modules\Tenants\Models;
 
 use App\Modules\Crew\Models\CrewMember;
+use App\Modules\Inventory\Models\InventoryItem;
+use App\Modules\Inventory\Models\StockMovement;
 use App\Modules\Maintenance\Models\MaintenanceTask;
 use App\Modules\Yachts\Models\Yacht;
 use Database\Factories\TenantFactory;
@@ -41,5 +43,15 @@ class Tenant extends Model
     public function maintenanceTasks(): HasMany
     {
         return $this->hasMany(MaintenanceTask::class);
+    }
+
+    public function inventoryItems(): HasMany
+    {
+        return $this->hasMany(InventoryItem::class);
+    }
+
+    public function stockMovements(): HasMany
+    {
+        return $this->hasMany(StockMovement::class);
     }
 }

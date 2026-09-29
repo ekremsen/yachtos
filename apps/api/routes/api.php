@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Crew\Http\Controllers\CrewMemberController;
+use App\Modules\Inventory\Http\Controllers\InventoryItemController;
 use App\Modules\Maintenance\Http\Controllers\MaintenanceTaskController;
 use App\Modules\Tenants\Http\Controllers\CurrentTenantController;
 use App\Modules\Yachts\Http\Controllers\YachtController;
@@ -25,5 +26,10 @@ Route::middleware(['auth:sanctum', 'user.active', 'tenant.context'])->group(func
         Route::get('/maintenance/{maintenanceTask}', [MaintenanceTaskController::class, 'show'])->whereUuid('maintenanceTask');
         Route::patch('/maintenance/{maintenanceTask}', [MaintenanceTaskController::class, 'update'])->whereUuid('maintenanceTask');
         Route::post('/maintenance/{maintenanceTask}/complete', [MaintenanceTaskController::class, 'complete'])->whereUuid('maintenanceTask');
+        Route::get('/inventory', [InventoryItemController::class, 'index']);
+        Route::post('/inventory', [InventoryItemController::class, 'store']);
+        Route::get('/inventory/{inventoryItem}', [InventoryItemController::class, 'show'])->whereUuid('inventoryItem');
+        Route::patch('/inventory/{inventoryItem}', [InventoryItemController::class, 'update'])->whereUuid('inventoryItem');
+        Route::post('/inventory/{inventoryItem}/movements', [InventoryItemController::class, 'move'])->whereUuid('inventoryItem');
     });
 });

@@ -3,6 +3,9 @@
 namespace Database\Seeders;
 
 use App\Modules\Crew\Models\CrewMember;
+use App\Modules\Inventory\Models\InventoryItem;
+use App\Modules\Inventory\Models\StockMovement;
+use App\Modules\Inventory\Support\StockQuantity;
 use App\Modules\Maintenance\Models\MaintenanceAssignment;
 use App\Modules\Maintenance\Models\MaintenanceTask;
 use App\Modules\Tenants\Models\Tenant;
@@ -103,6 +106,47 @@ class DatabaseSeeder extends Seeder
                         'tenant_id' => $tenant->id, 'yacht_id' => $yacht->id,
                         'maintenance_task_id' => $task->id,
                         'crew_member_id' => sprintf('a7de0000-0000-4000-8000-%012d', $crewNumber),
+                    ])->save();
+                }
+            }
+
+            $items = [
+                ['Engine oil 15W-40', 'Engine', 'liter', '42.000', '20.000', 'Engine room · oil locker', [['in', '50.000', 'Initial onboard count'], ['out', '-8.000', 'Routine service use']]],
+                ['Marine coolant', 'Engine', 'liter', '12.000', '10.000', 'Engine room · shelf A', [['in', '12.000', 'Initial onboard count']]],
+                ['Fuel filter element', 'Engine', 'piece', '2.000', '4.000', 'Engine room · spares bin', [['in', '5.000', 'Initial onboard count'], ['out', '-3.000', 'Generator service']]],
+                ['Raw-water impeller', 'Engine', 'piece', '0.000', '1.000', 'Engine room · spares bin', []],
+                ['Deck cleaning solution', 'Cleaning', 'liter', '3.000', '5.000', 'Bosun store', [['in', '6.000', 'Initial onboard count'], ['out', '-3.000', 'Deck cleaning']]],
+                ['Bottled drinking water', 'Provisions', 'pack', '48.000', '12.000', 'Galley · dry store', [['in', '48.000', 'Initial onboard count']]],
+                ['Mooring line 18 mm', 'Deck', 'meter', '180.500', '50.000', 'Forepeak locker', [['in', '200.000', 'Initial onboard count'], ['out', '-19.500', 'Line inspection and trim']]],
+                ['Work gloves', 'Safety', 'pack', '4.000', '2.000', 'Bosun store', [['in', '4.000', 'Initial onboard count']]],
+            ];
+
+            $movementNumber = 60;
+            foreach ($items as $index => [$name, $category, $unit, $balance, $minimum, $location, $movements]) {
+                $item = InventoryItem::firstOrNew(['id' => sprintf('a7de0000-0000-4000-8000-%012d', 40 + $index)]);
+                $item->forceFill([
+                    'tenant_id' => $tenant->id, 'yacht_id' => $yacht->id, 'name' => $name,
+                    'description' => null, 'category' => $category, 'unit' => $unit,
+                    'current_quantity' => $balance, 'minimum_quantity' => $minimum,
+                    'storage_location' => $location,
+                ])->save();
+
+                foreach ($movements as $movementIndex => [$type, $delta, $reason]) {
+                    $movementId = sprintf('a7de0000-0000-4000-8000-%012d', $movementNumber++);
+                    $movement = StockMovement::firstOrNew(['id' => $movementId]);
+                    if ($movement->exists) {
+                        continue;
+                    }
+                    $running = 0;
+                    for ($prior = 0; $prior <= $movementIndex; $prior++) {
+                        $running += StockQuantity::milli($movements[$prior][1]);
+                    }
+                    $movement->forceFill([
+                        'tenant_id' => $tenant->id, 'yacht_id' => $yacht->id,
+                        'inventory_item_id' => $item->id, 'performed_by_user_id' => $user->id,
+                        'type' => $type, 'quantity' => $delta, 'balance_after' => StockQuantity::format($running),
+                        'reason' => $reason, 'note' => null,
+                        'created_at' => now('UTC')->subDays(8 - $index)->subHours($movementIndex),
                     ])->save();
                 }
             }

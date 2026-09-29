@@ -3,6 +3,8 @@
 namespace App\Modules\Yachts\Models;
 
 use App\Modules\Crew\Models\CrewMember;
+use App\Modules\Inventory\Models\InventoryItem;
+use App\Modules\Inventory\Models\StockMovement;
 use App\Modules\Maintenance\Models\MaintenanceTask;
 use App\Modules\Tenants\Models\Tenant;
 use App\Modules\Users\Models\User;
@@ -47,6 +49,16 @@ class Yacht extends Model
     public function maintenanceTasks(): HasMany
     {
         return $this->hasMany(MaintenanceTask::class);
+    }
+
+    public function inventoryItems(): HasMany
+    {
+        return $this->hasMany(InventoryItem::class);
+    }
+
+    public function stockMovements(): HasMany
+    {
+        return $this->hasMany(StockMovement::class);
     }
 
     public function scopeAccessibleTo(Builder $query, User $user, Tenant $tenant): Builder

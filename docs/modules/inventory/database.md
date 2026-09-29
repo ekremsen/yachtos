@@ -1,127 +1,28 @@
 # Inventory Database Design
 
-**Version:** 1.0  
-**Status:** Draft  
-**Document Owner:** Engineering Team  
-**Last Updated:** 29 June 2026
+## `inventory_items`
 
----
+| Column | Design |
+|---|---|
+| `id` | UUID primary key |
+| `tenant_id`, `yacht_id` | Required ownership, composite yacht boundary |
+| `name` | Required string, max 180 |
+| `description` | Optional text |
+| `category` | Required simple string, max 80; no category table in this increment |
+| `unit` | Validated enum: piece, liter, kilogram, meter, pack |
+| `current_quantity` | Decimal(12,3), required, starts at 0 |
+| `minimum_quantity` | Nullable Decimal(12,3), non-negative |
+| `storage_location` | Optional string, max 120 |
+| timestamps | Created/updated |
 
-## Purpose
+`current_quantity` is a denormalized read balance; successful stock operations update it only together with a StockMovement in the same transaction. Do not use floats for persisted quantities or balance arithmetic. Decimal quantities are represented as integer thousandths inside the application service to avoid binary floating-point drift.
 
-This document defines the database design for the Inventory module.
+## `stock_movements`
 
-The Inventory module stores all onboard inventory items, stock movements and inventory history.
+Each immutable row has UUID, `tenant_id`, `yacht_id`, `inventory_item_id`, `performed_by_user_id`, `type` (`in`, `out`, `adjustment`), signed `quantity` delta Decimal(12,3), `balance_after` Decimal(12,3), required `reason`, optional `note`, and creation timestamp. There is no normal movement update/delete operation. The actor references the authenticated User for audit attribution.
 
----
+Composite foreign keys bind `(yacht_id, tenant_id)` to Yacht and `(inventory_item_id, tenant_id, yacht_id)` to the matching InventoryItem identity. Restricted deletes/updates preserve history. Item IDs are also unique with tenant and yacht for this boundary.
 
-## Database Overview
+## Decisions and risks
 
-The Inventory module is centered around three core tables:
-
-- inventory_items
-- inventory_movements
-- inventory_categories
-
----
-
-## Tables
-
-### inventory_items
-
-Represents an inventory item stored on a yacht.
-
-#### Columns
-
-| Column | Description |
-|---------|-------------|
-| id | Unique identifier |
-| tenant_id | Owner tenant |
-| yacht_id | Related yacht |
-| category_id | Inventory category |
-| name | Item name |
-| sku | Internal stock code |
-| unit | Unit of measurement |
-| quantity | Current quantity |
-| minimum_quantity | Minimum stock level |
-| storage_location | Storage location |
-| status | Active or Archived |
-| notes | Internal notes |
-| created_at | Creation timestamp |
-| updated_at | Last update timestamp |
-
----
-
-### inventory_movements
-
-Represents every stock movement.
-
-#### Columns
-
-| Column | Description |
-|---------|-------------|
-| id | Unique identifier |
-| tenant_id | Owner tenant |
-| inventory_item_id | Related inventory item |
-| user_id | User performing the movement |
-| movement_type | In, Out or Adjustment |
-| quantity | Movement quantity |
-| reason | Reason for movement |
-| created_at | Movement timestamp |
-
----
-
-### inventory_categories
-
-Represents inventory categories.
-
-#### Columns
-
-| Column | Description |
-|---------|-------------|
-| id | Unique identifier |
-| tenant_id | Owner tenant |
-| name | Category name |
-| created_at | Creation timestamp |
-| updated_at | Last update timestamp |
-
----
-
-## Relationships
-
-Inventory Category
-
-└── Inventory Items
-
-&nbsp;&nbsp;&nbsp;&nbsp;└── Inventory Movements
-
----
-
-## Design Rules
-
-- Every inventory item belongs to exactly one tenant.
-- Every inventory item belongs to exactly one yacht.
-- Every inventory item belongs to exactly one category.
-- Every inventory movement belongs to exactly one inventory item.
-- Every inventory movement belongs to exactly one user.
-- Inventory quantity is calculated from stock movements.
-- Stock movement history must never be deleted.
-- Inventory items with movement history must not be permanently deleted.
-- Hard delete is prohibited for historical inventory data.
-
----
-
-## Future Compatibility
-
-The current design supports future expansion for:
-
-- Barcode scanning
-- QR code support
-- RFID integration
-- Purchase orders
-- Supplier management
-- Automatic replenishment
-- Multi-location storage
-- Batch and serial number tracking
-- Expiration date tracking
-- Integration with the Finance module
+No category master table, archive status, item code/SKU, initial quantity input, separate locations table, or MaintenanceTask foreign key is added. Items start with zero stock and must receive an explicit `in` movement to establish stock. Stock history prevents hard deletion. Row-level `lockForUpdate` is used within a database transaction; SQLite ignores row-level locks, so production deployments requiring concurrent stock writes must use a database with real row locks (for example PostgreSQL). Composite database keys enforce yacht/tenant ownership. Application validation and the locked mutation service enforce nonnegative balances and movement semantics.

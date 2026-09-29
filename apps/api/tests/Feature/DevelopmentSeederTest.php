@@ -3,6 +3,9 @@
 namespace Tests\Feature;
 
 use App\Modules\Crew\Models\CrewMember;
+use App\Modules\Inventory\Models\InventoryItem;
+use App\Modules\Inventory\Models\StockMovement;
+use App\Modules\Inventory\Support\StockQuantity;
 use App\Modules\Maintenance\Models\MaintenanceTask;
 use App\Modules\Tenants\Models\TenantMembership;
 use App\Modules\Users\Models\User;
@@ -30,6 +33,12 @@ class DevelopmentSeederTest extends TestCase
         $this->assertDatabaseCount('crew_members', 5);
         $this->assertDatabaseCount('maintenance_tasks', 6);
         $this->assertDatabaseCount('maintenance_assignments', 8);
+        $this->assertDatabaseCount('inventory_items', 8);
+        $this->assertDatabaseCount('stock_movements', 11);
+        foreach (InventoryItem::with('movements')->get() as $item) {
+            $movementTotal = $item->movements->sum(fn (StockMovement $movement) => StockQuantity::milli((string) $movement->quantity));
+            $this->assertSame(StockQuantity::milli((string) $item->current_quantity), $movementTotal, $item->name.' balance matches its movement history');
+        }
         $this->assertTrue(Hash::check('YachtOS-Dev-2026!', User::sole()->password));
         $this->assertSame(1, TenantMembership::currentlyActive()->count());
 
@@ -48,6 +57,9 @@ class DevelopmentSeederTest extends TestCase
         $this->withToken($token)->getJson('/api/maintenance')->assertOk()->assertJsonCount(6, 'data')
             ->assertJsonFragment(['status' => 'in_progress'])->assertJsonFragment(['status' => 'completed']);
         $this->assertSame(6, MaintenanceTask::count());
+        $this->assertSame(8, InventoryItem::count());
+        $this->withToken($token)->getJson('/api/inventory')->assertOk()->assertJsonCount(8, 'data')
+            ->assertJsonFragment(['name' => 'Raw-water impeller', 'current_quantity' => '0.000', 'is_low_stock' => true]);
     }
 
     public function test_seeder_never_creates_development_credentials_in_production(): void
@@ -63,5 +75,7 @@ class DevelopmentSeederTest extends TestCase
         $this->assertDatabaseCount('crew_members', 0);
         $this->assertDatabaseCount('maintenance_tasks', 0);
         $this->assertDatabaseCount('maintenance_assignments', 0);
+        $this->assertDatabaseCount('inventory_items', 0);
+        $this->assertDatabaseCount('stock_movements', 0);
     }
 }

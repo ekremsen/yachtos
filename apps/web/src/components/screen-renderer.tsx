@@ -5,6 +5,7 @@ import Link from "next/link";
 import { LoginScreen } from "@/components/login-screen";
 import { CrewFeature } from "@/components/crew-feature";
 import { MaintenanceFeature } from "@/components/maintenance-feature";
+import { InventoryFeature } from "@/components/inventory-feature";
 import { useAuth } from "@/lib/auth/auth-provider";
 import * as Icons from "lucide-react";
 import type { ScreenDefinition } from "@/data/screens";
@@ -76,5 +77,6 @@ export function ScreenRenderer({ screen }: { screen: ScreenDefinition }) {
   if (screen.kind === "onboarding") return <Onboarding screen={screen} />;
   if (screen.path.startsWith("/crew") && ["/crew", "/crew/new", "/crew/cem-arslan", "/crew/cem-arslan/edit"].includes(screen.path) || screen.path.startsWith("/crew/") && !["/crew/schedule", "/crew/leaves", "/crew/documents", "/crew/payroll"].includes(screen.path)) return <CrewFeature screen={screen} />;
   if (["/maintenance", "/maintenance/work-orders", "/maintenance/work-orders/new"].includes(screen.path) || /^\/maintenance\/work-orders\/[0-9a-f-]+(\/edit)?$/i.test(screen.path)) return <MaintenanceFeature screen={screen} />;
+  if (["/inventory", "/inventory/items", "/inventory/items/new"].includes(screen.path) || /^\/inventory\/items\/[0-9a-f-]+(\/edit)?$/i.test(screen.path)) return <InventoryFeature screen={screen} />;
   return <div className="animate-rise"><PageHeader screen={screen} />{screen.kind === "dashboard" && <Dashboard />}{screen.kind === "list" && <ListScreen screen={screen} />}{screen.kind === "detail" && <DetailScreen screen={screen} />}{screen.kind === "form" && <FormScreen screen={screen} />}{screen.kind === "kanban" && <Kanban />}{screen.kind === "calendar" && <Calendar />}{screen.kind === "report" && <Report />}{screen.kind === "settings" && <SettingsScreen screen={screen} />}</div>;
 }
