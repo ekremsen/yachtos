@@ -36,7 +36,8 @@ Tenant
 ├── Tenant Membership ──► User
 └── Yacht
      ├── Yacht Membership ──► User
-     └── Crew Assignment ──► User
+     ├── CrewMember (operational person)
+     └── MaintenanceTask ── MaintenanceAssignment ──► CrewMember
 
 Authentication ──► User identity verification
 Authorization ──► Role + Permission enforcement within Tenant context
@@ -222,50 +223,13 @@ It is concerned with responsibility, authority and yacht-level role history.
 
 ---
 
-### Crew Assignment
+### CrewMember
 
-A **Crew Assignment** represents the operational employment or service relationship of a user on a yacht.
+A **CrewMember** is an operational person serving aboard a yacht. A CrewMember does not require a YachtOS account. CrewMember is owned by the Crew module and belongs to one tenant and yacht. It is distinct from both User identity and YachtMembership authorization. See the [Crew module model](../modules/crew/index.md).
 
-It is focused on crew operations, not platform identity.
+### MaintenanceTask and MaintenanceAssignment
 
-#### Typical Attributes
-
-- tenant_id
-- yacht_id
-- user_id
-- position
-- employment_type
-- start_date
-- end_date
-- status
-
-#### Purpose
-
-- Track who is serving on a yacht in an operational crew context
-- Manage crew history, certifications and employment-related information
-- Support day-to-day crew operations without replacing yacht membership roles
-
-#### Key Rules
-
-- A crew assignment always references an existing user and yacht.
-- A user may have multiple crew assignments over time.
-- Historical crew assignments must be preserved.
-- Crew assignment does not replace yacht membership.
-
-#### Distinction from Yacht Membership
-
-**Crew Assignment** answers:
-
-"How is this user operationally assigned to work on this yacht?"
-
-It is concerned with crew operations, employment context, certifications and assignment history.
-
-A user may simultaneously hold:
-
-- a **Yacht Membership** role such as Captain, and
-- a **Crew Assignment** record with position and employment details.
-
-These are separate concepts and must remain separate in data and module ownership.
+A **MaintenanceTask** is yacht-specific maintenance work, not a generic future Task entity. It belongs to one tenant and yacht. A **MaintenanceAssignment** links that work to one or more CrewMembers from the same yacht. It never assigns work to a User or confers YachtMembership access. See the [Maintenance module model](../modules/maintenance/index.md).
 
 ---
 
@@ -417,7 +381,9 @@ User
 | User | Users | Identity and profile only |
 | Tenant Membership | Tenants | Organization access relationship |
 | Yacht Membership | Yachts or dedicated membership module | Operational yacht roles |
-| Crew Assignment | Crew | Operational crew service relationship |
+| CrewMember | Crew | Operational person aboard a yacht; no login required |
+| MaintenanceTask | Maintenance | Yacht maintenance history and lifecycle |
+| MaintenanceAssignment | Maintenance | Links maintenance work to same-yacht CrewMembers |
 | Authentication | Support / Auth | Identity verification only |
 | Authorization | Support / Auth | Roles, permissions and policies |
 | Role | Support / Auth | Named permission grouping |

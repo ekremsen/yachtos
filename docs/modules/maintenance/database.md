@@ -1,109 +1,25 @@
 # Maintenance Database Design
 
-**Version:** 1.0  
-**Status:** Draft  
-**Document Owner:** Engineering Team  
-**Last Updated:** 29 June 2026
+## `maintenance_tasks`
 
----
+One row is an operational maintenance record for one yacht. It is separate from a future generic task or recurring plan.
 
-## Purpose
+| Column | Meaning |
+|---|---|
+| `id` | UUID primary key |
+| `tenant_id`, `yacht_id` | Immutable tenant and yacht ownership |
+| `title`, `description` | Required short title and optional work details |
+| `type` | `preventive`, `corrective`, or `inspection` |
+| `status` | `planned`, `in_progress`, `completed`, or `cancelled` |
+| `priority` | `low`, `normal`, `high`, or `critical` |
+| `due_date` | Required calendar date for planned work |
+| `completed_at` | Server timestamp set only by completion action |
+| timestamps | Create/update times |
 
-This document defines the database design for the Maintenance module.
+## `maintenance_assignments`
 
-The Maintenance module stores all maintenance activities performed throughout a yacht's operational lifecycle.
+Many-to-many task/CrewMember relation with its own UUID and repeated `tenant_id`, `yacht_id`. `(maintenance_task_id, tenant_id, yacht_id)` references the maintenance task's unique composite identity. `(crew_member_id, tenant_id, yacht_id)` references a CrewMember composite identity. Both use restricted update/delete. A unique `(maintenance_task_id, crew_member_id)` prevents duplicate assignments.
 
----
+The CrewMember module adds the required unique `(id, tenant_id, yacht_id)` identity. Maintenance tasks similarly expose a unique `(id, tenant_id, yacht_id)` identity. Their yacht keys reference `(yachts.id, yachts.tenant_id)`. These composite foreign keys make cross-tenant and cross-yacht assignment impossible even if application checks are bypassed.
 
-## Database Overview
-
-The Maintenance module is centered around two core tables:
-
-- maintenances
-- maintenance_attachments
-
----
-
-## Tables
-
-### maintenances
-
-Represents a maintenance activity.
-
-#### Columns
-
-| Column | Description |
-|---------|-------------|
-| id | Unique identifier |
-| tenant_id | Owner tenant |
-| yacht_id | Related yacht |
-| assigned_user_id | Responsible user |
-| title | Maintenance title |
-| description | Detailed description |
-| type | Preventive, Corrective or Inspection |
-| priority | Low, Medium, High or Critical |
-| status | Planned, In Progress, Completed or Cancelled |
-| scheduled_at | Planned maintenance date |
-| completed_at | Completion date |
-| estimated_cost | Estimated maintenance cost |
-| actual_cost | Actual maintenance cost |
-| notes | Internal notes |
-| created_at | Creation timestamp |
-| updated_at | Last update timestamp |
-
----
-
-### maintenance_attachments
-
-Represents files attached to a maintenance record.
-
-#### Columns
-
-| Column | Description |
-|---------|-------------|
-| id | Unique identifier |
-| maintenance_id | Related maintenance |
-| file_name | Original file name |
-| file_path | Storage location |
-| file_type | MIME type |
-| uploaded_by | User who uploaded the file |
-| created_at | Upload timestamp |
-
----
-
-## Relationships
-
-Maintenance
-
-├── Yacht
-
-├── Assigned User
-
-└── Maintenance Attachments
-
----
-
-## Design Rules
-
-- Every maintenance record belongs to exactly one tenant.
-- Every maintenance record belongs to exactly one yacht.
-- Every maintenance record may be assigned to one responsible user.
-- Attachments belong to a single maintenance record.
-- Historical maintenance records must always be preserved.
-- Completed maintenance records must never be permanently deleted.
-- Hard delete is prohibited for maintenance records linked to yacht history.
-
----
-
-## Future Compatibility
-
-The current design supports future expansion for:
-
-- Recurring maintenance schedules
-- Maintenance templates
-- Spare parts integration
-- Vendor management
-- Purchase orders
-- Predictive maintenance
-- IoT integrations
-- Warranty tracking
+Ownership is immutable in models and server-derived on create. Tasks and assignments are not hard deleted; completed/cancelled work remains as yacht history. No Users, costs, attachments, parts, recurrence engine, or audit event table is introduced here.

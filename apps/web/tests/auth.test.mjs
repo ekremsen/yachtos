@@ -113,6 +113,36 @@ test('Crew create and edit use POST and PATCH with the active yacht header', asy
   }
 });
 
+test('Maintenance create, update and completion preserve payloads and active yacht context', async () => {
+  process.env.NEXT_PUBLIC_API_URL = 'http://localhost:8000';
+  const calls = [];
+  globalThis.fetch = async (url, init) => {
+    calls.push({ url, init });
+    return Response.json({ data: { id: 'task-id' } });
+  };
+  await apiRequest('/maintenance', {
+    method: 'POST', token: '1|test', yachtId: 'active-yacht',
+    body: { title: 'Inspect rigging', type: 'inspection', priority: 'high', due_date: '2026-10-01', assignee_ids: ['crew-id'] },
+  });
+  await apiRequest('/maintenance/task-id', {
+    method: 'PATCH', token: '1|test', yachtId: 'active-yacht', body: { status: 'in_progress' },
+  });
+  await apiRequest('/maintenance/task-id/complete', {
+    method: 'POST', token: '1|test', yachtId: 'active-yacht',
+  });
+
+  assert.deepEqual(calls.map(({ url, init }) => [url, init.method, init.headers['X-Yacht-Id']]), [
+    ['http://localhost:8000/api/maintenance', 'POST', 'active-yacht'],
+    ['http://localhost:8000/api/maintenance/task-id', 'PATCH', 'active-yacht'],
+    ['http://localhost:8000/api/maintenance/task-id/complete', 'POST', 'active-yacht'],
+  ]);
+  assert.deepEqual(JSON.parse(calls[0].init.body), {
+    title: 'Inspect rigging', type: 'inspection', priority: 'high', due_date: '2026-10-01', assignee_ids: ['crew-id'],
+  });
+  assert.deepEqual(JSON.parse(calls[1].init.body), { status: 'in_progress' });
+  assert.equal(calls[2].init.body, undefined);
+});
+
 test('validation errors remain structured and server internals are not surfaced', async () => {
   process.env.NEXT_PUBLIC_API_URL = 'http://localhost:8000';
   globalThis.fetch = async () => Response.json({ message: 'internal detail', errors: { email: ['Required'] } }, { status: 422 });

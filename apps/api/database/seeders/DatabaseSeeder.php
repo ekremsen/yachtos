@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Modules\Crew\Models\CrewMember;
+use App\Modules\Maintenance\Models\MaintenanceAssignment;
+use App\Modules\Maintenance\Models\MaintenanceTask;
 use App\Modules\Tenants\Models\Tenant;
 use App\Modules\Tenants\Models\TenantMembership;
 use App\Modules\Users\Models\User;
@@ -73,6 +75,36 @@ class DatabaseSeeder extends Seeder
                     'last_name' => $last, 'position' => $position, 'email' => $email, 'phone' => $phone,
                     'nationality' => $nationality, 'status' => 'active', 'start_date' => '2026-01-01', 'end_date' => null,
                 ])->save();
+            }
+
+            $tasks = [
+                ['Overdue sea-water pump inspection', 'Inspect pump seals and confirm cooling flow.', 'inspection', 'planned', 'critical', '2026-09-24', null, [11]],
+                ['Port generator belt replacement', 'Replace worn drive belt and verify tension.', 'corrective', 'planned', 'high', '2026-10-04', null, [11, 12]],
+                ['Quarterly fire suppression check', 'Check pressure indicators and engine-room nozzles.', 'preventive', 'planned', 'normal', '2026-10-12', null, [13]],
+                ['Hydraulic windlass leak repair', 'Replace the return-line seal and test under load.', 'corrective', 'in_progress', 'high', '2026-09-28', null, [11, 10]],
+                ['Navigation light inspection', 'Verify port and starboard navigation lights.', 'inspection', 'completed', 'normal', '2026-09-18', '2026-09-19 11:30:00', [12]],
+                ['Tender davit lubrication', 'Apply approved lubricant to davit pivots.', 'preventive', 'cancelled', 'low', '2026-09-20', null, [12]],
+            ];
+
+            $assignmentNumber = 30;
+            foreach ($tasks as $index => [$title, $description, $type, $status, $priority, $dueDate, $completedAt, $crewNumbers]) {
+                $task = MaintenanceTask::firstOrNew(['id' => sprintf('a7de0000-0000-4000-8000-%012d', 20 + $index)]);
+                $task->forceFill([
+                    'tenant_id' => $tenant->id, 'yacht_id' => $yacht->id, 'title' => $title,
+                    'description' => $description, 'type' => $type, 'status' => $status,
+                    'priority' => $priority, 'due_date' => $dueDate, 'completed_at' => $completedAt,
+                ])->save();
+
+                foreach ($crewNumbers as $crewNumber) {
+                    $assignment = MaintenanceAssignment::firstOrNew([
+                        'id' => sprintf('a7de0000-0000-4000-8000-%012d', $assignmentNumber++),
+                    ]);
+                    $assignment->forceFill([
+                        'tenant_id' => $tenant->id, 'yacht_id' => $yacht->id,
+                        'maintenance_task_id' => $task->id,
+                        'crew_member_id' => sprintf('a7de0000-0000-4000-8000-%012d', $crewNumber),
+                    ])->save();
+                }
             }
         });
     }

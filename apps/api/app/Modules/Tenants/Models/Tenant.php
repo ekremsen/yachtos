@@ -3,6 +3,7 @@
 namespace App\Modules\Tenants\Models;
 
 use App\Modules\Crew\Models\CrewMember;
+use App\Modules\Maintenance\Models\MaintenanceTask;
 use App\Modules\Yachts\Models\Yacht;
 use Database\Factories\TenantFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -35,5 +36,10 @@ class Tenant extends Model
     public function crewMembers(): HasMany
     {
         return $this->hasMany(CrewMember::class);
+    }
+
+    public function maintenanceTasks(): HasMany
+    {
+        return $this->hasMany(MaintenanceTask::class);
     }
 }
