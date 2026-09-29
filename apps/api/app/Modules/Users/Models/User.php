@@ -2,6 +2,7 @@
 
 namespace App\Modules\Users\Models;
 
+use App\Modules\Inventory\Models\StockMovement;
 use App\Modules\Tenants\Models\TenantMembership;
 use App\Modules\Yachts\Models\YachtMembership;
 use Database\Factories\UserFactory;
@@ -70,6 +71,11 @@ class User extends Authenticatable
     public function tenantMemberships(): HasMany
     {
         return $this->hasMany(TenantMembership::class);
+    }
+
+    public function stockMovements(): HasMany
+    {
+        return $this->hasMany(StockMovement::class, 'performed_by_user_id');
     }
 
     public function yachtMemberships(): HasMany

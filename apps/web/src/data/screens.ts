@@ -53,7 +53,7 @@ export const screens: ScreenDefinition[] = [
   ]),
   ...define("Stok", [
     ["/inventory", "Stok Merkezi", "dashboard"], ["/inventory/items", "Stok Ürünleri", "list"],
-    ["/inventory/items/engine-oil", "Motor Yağı 15W-40", "detail"], ["/inventory/movements", "Stok Hareketleri", "list"],
+    ["/inventory/items/new", "Yeni Stok Ürünü", "form"], ["/inventory/movements", "Stok Hareketleri", "list"],
     ["/inventory/locations", "Depolar", "list"], ["/inventory/counts", "Stok Sayımı", "list"],
     ["/inventory/alerts", "Minimum Stok Uyarıları", "list"], ["/inventory/categories", "Stok Kategorileri", "settings"],
   ]),
@@ -105,6 +105,9 @@ export function resolveScreen(path: string): ScreenDefinition | undefined {
   }
   if (/^\/maintenance\/work-orders\/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(\/edit)?$/i.test(path)) {
     return { path, title: path.endsWith("/edit") ? "Bakım İşini Düzenle" : "Bakım İşi", description: "Aktif yat bakım kaydı.", kind: path.endsWith("/edit") ? "form" : "detail", module: "Bakım" };
+  }
+  if (/^\/inventory\/items\/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(\/edit)?$/i.test(path)) {
+    return { path, title: path.endsWith("/edit") ? "Stok Ürününü Düzenle" : "Stok Ürünü", description: "Aktif yat stok kaydı ve hareket geçmişi.", kind: path.endsWith("/edit") ? "form" : "detail", module: "Stok" };
   }
   return undefined;
 }

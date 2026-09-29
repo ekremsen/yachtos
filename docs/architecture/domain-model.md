@@ -37,7 +37,8 @@ Tenant
 └── Yacht
      ├── Yacht Membership ──► User
      ├── CrewMember (operational person)
-     └── MaintenanceTask ── MaintenanceAssignment ──► CrewMember
+     ├── MaintenanceTask ── MaintenanceAssignment ──► CrewMember
+     └── InventoryItem ── StockMovement ──► User (movement actor)
 
 Authentication ──► User identity verification
 Authorization ──► Role + Permission enforcement within Tenant context
@@ -231,6 +232,10 @@ A **CrewMember** is an operational person serving aboard a yacht. A CrewMember d
 
 A **MaintenanceTask** is yacht-specific maintenance work, not a generic future Task entity. It belongs to one tenant and yacht. A **MaintenanceAssignment** links that work to one or more CrewMembers from the same yacht. It never assigns work to a User or confers YachtMembership access. See the [Maintenance module model](../modules/maintenance/index.md).
 
+### InventoryItem and StockMovement
+
+An **InventoryItem** is yacht-specific onboard stock. Its current balance is maintained transactionally with immutable **StockMovement** rows; the movement actor is the authenticated User, while item and movement ownership derives from TenantContext and YachtContext. Maintenance consumption and purchasing remain separate future integrations. See the [Inventory module model](../modules/inventory/index.md).
+
 ---
 
 ## Access Control Concepts
@@ -362,8 +367,11 @@ Tenant
        ├── Yacht Membership
        │      └── User
        │
-       └── Crew Assignment
-              └── User
+       ├── CrewMember
+       ├── MaintenanceTask
+       │      └── MaintenanceAssignment ──► CrewMember
+       └── InventoryItem
+              └── StockMovement ──► User (actor)
 
 User
 ├── Authenticated by Authentication
@@ -384,6 +392,8 @@ User
 | CrewMember | Crew | Operational person aboard a yacht; no login required |
 | MaintenanceTask | Maintenance | Yacht maintenance history and lifecycle |
 | MaintenanceAssignment | Maintenance | Links maintenance work to same-yacht CrewMembers |
+| InventoryItem | Inventory | Yacht-scoped stock item with denormalized current balance |
+| StockMovement | Inventory | Immutable, same-yacht stock delta and audit history |
 | Authentication | Support / Auth | Identity verification only |
 | Authorization | Support / Auth | Roles, permissions and policies |
 | Role | Support / Auth | Named permission grouping |

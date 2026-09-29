@@ -1,105 +1,14 @@
 # Inventory Business Rules
 
-**Version:** 1.0  
-**Status:** Draft  
-**Document Owner:** Product Team  
-**Last Updated:** 29 June 2026
-
----
-
-## Purpose
-
-This document defines the business rules for the Inventory module.
-
----
-
-## Business Rules
-
-### BR-001
-
-Every inventory item must belong to exactly one yacht.
-
----
-
-### BR-002
-
-Every inventory item must belong to exactly one tenant.
-
----
-
-### BR-003
-
-Every inventory item must belong to one inventory category.
-
----
-
-### BR-004
-
-Stock quantity must never become negative.
-
-The system must reject stock movements that would result in negative inventory.
-
----
-
-### BR-005
-
-Every stock movement must be recorded.
-
-Inventory history must always be preserved.
-
----
-
-### BR-006
-
-Inventory adjustments must include a reason.
-
----
-
-### BR-007
-
-Inventory items may define a minimum stock level.
-
-The system should identify items below the configured minimum level.
-
----
-
-### BR-008
-
-Inventory items may be assigned to a storage location.
-
----
-
-### BR-009
-
-Inventory history must remain available even after an item is archived.
-
----
-
-### BR-010
-
-Inventory items cannot be permanently deleted if they have stock movement history.
-
----
-
-### BR-011
-
-Users cannot access inventory belonging to another tenant.
-
----
-
-### BR-012
-
-Every stock movement must be associated with the user who performed the operation.
-
----
-
-## Validation Rules
-
-The system must validate:
-
-- Tenant ownership
-- Yacht existence
-- Inventory item existence
-- Stock availability
-- User permissions
-- Stock movement consistency
+- An InventoryItem belongs to one Tenant and one Yacht. Ownership comes from TenantContext and YachtContext and never from request payloads.
+- Every StockMovement belongs to an InventoryItem in the same tenant and yacht. Foreign-yacht/tenant item IDs return a generic not-found response.
+- Item metadata includes name, optional description, simple category and location strings, unit, and optional minimum quantity. Categories are not managed as a separate subsystem.
+- `current_quantity` is a denormalized balance. New items start at zero; establishing a balance requires an explicit stock-in operation.
+- All quantities use decimal(12,3) with maximum three fractional digits. Units are piece, liter, kilogram, meter, and pack. Units are not converted.
+- `in` and `out` request positive quantities; the stored movement delta is respectively positive and negative. `adjustment` quantity is a signed delta. It must be non-zero; a negative adjustment cannot take the balance below zero.
+- A stock movement and balance update succeed or fail together in one database transaction. The item row is locked for mutation where the database supports row-level locking.
+- Stock cannot become negative. A rejected operation creates no movement and changes no balance.
+- Movement reason is required. The immutable history records type, signed delta, resulting balance, reason, optional note, authenticated actor, and timestamp. Corrections require another adjustment movement.
+- An item is low stock when minimum quantity is configured and current quantity is less than or equal to the minimum.
+- StockMovements and items with movement history cannot be hard deleted through the application.
+- Maintenance consumption, purchasing, supplier relationships, cost, and replenishment are out of scope.
