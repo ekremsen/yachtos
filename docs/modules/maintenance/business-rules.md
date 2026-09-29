@@ -1,105 +1,14 @@
 # Maintenance Business Rules
 
-**Version:** 1.0  
-**Status:** Draft  
-**Document Owner:** Product Team  
-**Last Updated:** 29 June 2026
-
----
-
-## Purpose
-
-This document defines the business rules for the Maintenance module.
-
----
-
-## Business Rules
-
-### BR-001
-
-Every maintenance record must belong to exactly one yacht.
-
----
-
-### BR-002
-
-Every maintenance record must belong to exactly one tenant.
-
----
-
-### BR-003
-
-Maintenance records must remain available for the entire operational lifecycle of the yacht.
-
----
-
-### BR-004
-
-A maintenance record must always have a status.
-
-Supported statuses include:
-
-- Planned
-- In Progress
-- Completed
-- Cancelled
-
----
-
-### BR-005
-
-Completed maintenance records must not be permanently deleted.
-
----
-
-### BR-006
-
-Maintenance completion date cannot be earlier than the scheduled date.
-
----
-
-### BR-007
-
-Maintenance may be assigned to one or more responsible users.
-
----
-
-### BR-008
-
-Maintenance records may include notes and file attachments.
-
----
-
-### BR-009
-
-A completed maintenance record becomes read-only except for administrative corrections.
-
----
-
-### BR-010
-
-Every maintenance action must be recorded in the audit history.
-
----
-
-### BR-011
-
-Users cannot access maintenance records belonging to another tenant.
-
----
-
-### BR-012
-
-Maintenance history must remain available even if the yacht is archived.
-
----
-
-## Validation Rules
-
-The system must validate:
-
-- Yacht existence
-- Tenant ownership
-- User permissions
-- Maintenance status transitions
-- Maintenance dates
+- A MaintenanceTask belongs to exactly one tenant and yacht. Server contexts supply ownership; clients cannot select it.
+- All reads, writes, assignees, and details are scoped to the active YachtContext. Foreign-yacht IDs are indistinguishable from unknown IDs.
+- A task may have multiple CrewMember assignees. Every assignee must be active and belong to the same tenant and yacht.
+- CrewMember describes onboard personnel. User authenticates; YachtMembership authorizes yacht access. Neither is a maintenance assignee.
+- Title, type, status, priority and due date are required. Description and assignees are optional.
+- Status values: planned, in_progress, completed, cancelled. Planned may transition to in_progress, completed through the completion action, or cancelled. In-progress may complete or be cancelled. Completed/cancelled are terminal.
+- Completion is an explicit action, sets `completed_at` from the server clock in UTC, and cannot be supplied or reset by client input.
+- Work may be completed before its due date; scheduled dates are targets, not a restriction on recording completed work.
+- Priority is low, normal, high, critical. No scoring or risk model is implied.
+- `is_overdue` is derived for planned/in-progress work whose due date precedes today's UTC date. Completed and cancelled work is never overdue.
+- Maintenance and assignment rows are retained; there is no hard-delete operation.
+- Dates use calendar `Y-m-d`; due dates are compared in UTC. No recurrence generation or automatic rescheduling occurs.

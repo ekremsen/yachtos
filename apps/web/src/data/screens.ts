@@ -47,7 +47,7 @@ export const screens: ScreenDefinition[] = [
   ...define("Bakım", [
     ["/maintenance", "Bakım Merkezi", "dashboard"], ["/maintenance/plans", "Bakım Planları", "list"],
     ["/maintenance/plans/main-engine", "Ana Makine Bakım Planı", "detail"], ["/maintenance/work-orders", "İş Emirleri", "list"],
-    ["/maintenance/work-orders/wo-1048", "İş Emri WO-1048", "detail"], ["/maintenance/work-orders/new", "Yeni İş Emri", "form"],
+    ["/maintenance/work-orders/new", "Yeni Bakım İşi", "form"],
     ["/maintenance/history", "Bakım Geçmişi", "list"], ["/maintenance/faults", "Arıza Kayıtları", "list"],
     ["/maintenance/meters", "Sayaçlar ve Çalışma Saatleri", "list"],
   ]),
@@ -102,6 +102,9 @@ export function resolveScreen(path: string): ScreenDefinition | undefined {
   if (exact) return exact;
   if (/^\/crew\/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(\/edit)?$/i.test(path)) {
     return { path, title: path.endsWith("/edit") ? "Personel Bilgilerini Düzenle" : "Mürettebat Üyesi", description: "Aktif yat mürettebat bilgileri.", kind: path.endsWith("/edit") ? "form" : "detail", module: "Mürettebat" };
+  }
+  if (/^\/maintenance\/work-orders\/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(\/edit)?$/i.test(path)) {
+    return { path, title: path.endsWith("/edit") ? "Bakım İşini Düzenle" : "Bakım İşi", description: "Aktif yat bakım kaydı.", kind: path.endsWith("/edit") ? "form" : "detail", module: "Bakım" };
   }
   return undefined;
 }

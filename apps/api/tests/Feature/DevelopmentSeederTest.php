@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Modules\Crew\Models\CrewMember;
+use App\Modules\Maintenance\Models\MaintenanceTask;
 use App\Modules\Tenants\Models\TenantMembership;
 use App\Modules\Users\Models\User;
 use App\Modules\Yachts\Models\Yacht;
@@ -27,6 +28,8 @@ class DevelopmentSeederTest extends TestCase
         $this->assertDatabaseCount('yachts', 1);
         $this->assertDatabaseCount('yacht_memberships', 1);
         $this->assertDatabaseCount('crew_members', 5);
+        $this->assertDatabaseCount('maintenance_tasks', 6);
+        $this->assertDatabaseCount('maintenance_assignments', 8);
         $this->assertTrue(Hash::check('YachtOS-Dev-2026!', User::sole()->password));
         $this->assertSame(1, TenantMembership::currentlyActive()->count());
 
@@ -42,6 +45,9 @@ class DevelopmentSeederTest extends TestCase
         $this->withToken($token)->getJson('/api/crew')->assertOk()->assertJsonCount(5, 'data')
             ->assertJsonFragment(['position' => 'Captain']);
         $this->assertSame(5, CrewMember::count());
+        $this->withToken($token)->getJson('/api/maintenance')->assertOk()->assertJsonCount(6, 'data')
+            ->assertJsonFragment(['status' => 'in_progress'])->assertJsonFragment(['status' => 'completed']);
+        $this->assertSame(6, MaintenanceTask::count());
     }
 
     public function test_seeder_never_creates_development_credentials_in_production(): void
@@ -55,5 +61,7 @@ class DevelopmentSeederTest extends TestCase
         $this->assertDatabaseCount('yachts', 0);
         $this->assertDatabaseCount('yacht_memberships', 0);
         $this->assertDatabaseCount('crew_members', 0);
+        $this->assertDatabaseCount('maintenance_tasks', 0);
+        $this->assertDatabaseCount('maintenance_assignments', 0);
     }
 }

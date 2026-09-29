@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Modules\Crew\Models;
+namespace App\Modules\Maintenance\Models;
 
-use App\Modules\Maintenance\Models\MaintenanceAssignment;
 use App\Modules\Tenants\Models\Tenant;
 use App\Modules\Yachts\Models\Yacht;
 use Illuminate\Database\Eloquent\Builder;
@@ -12,26 +11,25 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use LogicException;
 
-class CrewMember extends Model
+class MaintenanceTask extends Model
 {
     use HasUuids;
 
-    protected $guarded = ['id', 'tenant_id', 'yacht_id', 'created_at', 'updated_at'];
+    protected $guarded = ['id', 'tenant_id', 'yacht_id', 'completed_at', 'created_at', 'updated_at'];
 
     protected function casts(): array
     {
-        return ['start_date' => 'date', 'end_date' => 'date'];
+        return ['due_date' => 'date', 'completed_at' => 'immutable_datetime'];
     }
 
     protected static function booted(): void
     {
-        static::updating(function (CrewMember $member): void {
-            if ($member->isDirty(['tenant_id', 'yacht_id'])) {
-                throw new LogicException('Crew ownership is immutable.');
+        static::updating(function (MaintenanceTask $task): void {
+            if ($task->isDirty(['tenant_id', 'yacht_id'])) {
+                throw new LogicException('Maintenance ownership is immutable.');
             }
         });
-
-        static::deleting(fn () => throw new LogicException('Deactivate crew members instead of deleting them.'));
+        static::deleting(fn () => throw new LogicException('Retain maintenance history; hard deletion is prohibited.'));
     }
 
     public function scopeForYacht(Builder $query, string $yachtId): Builder
@@ -49,8 +47,14 @@ class CrewMember extends Model
         return $this->belongsTo(Yacht::class);
     }
 
-    public function maintenanceAssignments(): HasMany
+    public function assignments(): HasMany
     {
         return $this->hasMany(MaintenanceAssignment::class);
+    }
+
+    public function isOverdue(?string $today = null): bool
+    {
+        return in_array($this->status, ['planned', 'in_progress'], true)
+            && $this->due_date->toDateString() < ($today ?? now('UTC')->toDateString());
     }
 }
